@@ -87,52 +87,61 @@ router.post('/initiate-loan', (req, res) => {
 });
 
 /**
- * @route POST /api/v1/prime/execute-swap
- * @desc Execute cross-chain swap via 1inch Fusion+
+ * @route POST /api/v1/prime/execute-cross-chain-swap
+ * @desc Execute cross-chain swap for lending purposes via 1inch Fusion+
  */
-router.post('/execute-swap', async (req, res) => {
+router.post('/execute-cross-chain-swap', async (req, res) => {
   try {
-    const { loanId, srcToken, dstToken, amount, minReturn, chainId = 1, from } = req.body;
+    const { loanId, srcToken, dstToken, amount, srcChainId, dstChainId, from } = req.body;
     
-    if (!srcToken || !dstToken || !amount) {
+    if (!srcToken || !dstToken || !amount || !srcChainId || !dstChainId) {
       return res.status(400).json({
         success: false,
-        message: 'Missing required parameters: srcToken, dstToken, amount'
+        message: 'Missing required parameters: srcToken, dstToken, amount, srcChainId, dstChainId'
       });
     }
 
-    // First get quote from 1inch
-    const quote = await oneInchService.getSwapQuote(srcToken, dstToken, amount, parseInt(chainId), { from });
+    // Get cross-chain quote from 1inch
+    const quote = await oneInchService.getCrossChainSwapQuote(
+      srcToken, 
+      dstToken, 
+      amount, 
+      parseInt(srcChainId), 
+      parseInt(dstChainId)
+    );
     
-    // Execute swap using 1inch API
+    // Execute cross-chain swap using 1inch API
     const swapData = {
       ...quote,
       from: from || '0x0000000000000000000000000000000000000000',
       slippage: 0.5 // 0.5% slippage
     };
     
-    const result = await oneInchService.executeSwap(swapData, parseInt(chainId));
+    const result = await oneInchService.executeCrossChainSwap(swapData);
     
     res.json({
       success: true,
-      message: 'Cross-chain swap executed successfully',
+      message: 'Cross-chain swap executed successfully for lending',
       data: {
         swapId: result.txHash,
         loanId,
         srcToken,
         dstToken,
+        srcChainId: parseInt(srcChainId),
+        dstChainId: parseInt(dstChainId),
         srcAmount: amount,
         dstAmount: quote.toTokenAmount,
         slippage: 0.005,
+        purpose: 'cross-chain-lending',
         timestamp: new Date().toISOString(),
         transactionHash: result.txHash
       }
     });
   } catch (error) {
-    console.error('Error executing swap:', error);
+    console.error('Error executing cross-chain swap:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to execute swap',
+      message: 'Failed to execute cross-chain swap',
       error: error.message
     });
   }
@@ -275,32 +284,43 @@ router.get('/swap/:swapId', (req, res) => {
 });
 
 /**
- * @route GET /api/v1/prime/quote
- * @desc Get swap quote from 1inch Fusion+
+ * @route GET /api/v1/prime/cross-chain-quote
+ * @desc Get cross-chain swap quote for lending purposes
  */
-router.get('/quote', async (req, res) => {
+router.get('/cross-chain-quote', async (req, res) => {
   try {
-    const { srcToken, dstToken, amount, chainId = 1 } = req.query;
+    const { srcToken, dstToken, amount, srcChainId, dstChainId, loanId } = req.query;
     
-    if (!srcToken || !dstToken || !amount) {
+    if (!srcToken || !dstToken || !amount || !srcChainId || !dstChainId) {
       return res.status(400).json({
         success: false,
-        message: 'Missing required parameters: srcToken, dstToken, amount'
+        message: 'Missing required parameters: srcToken, dstToken, amount, srcChainId, dstChainId'
       });
     }
 
-    // Get real quote from 1inch API
-    const quote = await oneInchService.getSwapQuote(srcToken, dstToken, amount, parseInt(chainId));
+    // Get cross-chain quote from 1inch API
+    const quote = await oneInchService.getCrossChainSwapQuote(
+      srcToken, 
+      dstToken, 
+      amount, 
+      parseInt(srcChainId), 
+      parseInt(dstChainId)
+    );
     
     res.json({
       success: true,
-      data: quote
+      data: {
+        ...quote,
+        loanId: loanId || null,
+        purpose: 'cross-chain-lending',
+        timestamp: new Date().toISOString()
+      }
     });
   } catch (error) {
-    console.error('Error getting swap quote:', error);
+    console.error('Error getting cross-chain quote:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to get swap quote',
+      message: 'Failed to get cross-chain quote',
       error: error.message
     });
   }
