@@ -5,9 +5,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { WagmiConfig, createConfig, configureChains } from 'wagmi'
 import { mainnet, sepolia, polygon, optimism, arbitrum } from 'wagmi/chains'
 import { publicProvider } from 'wagmi/providers/public'
-import { MetaMaskConnector } from 'wagmi/connectors/metaMask'
-import { WalletConnectConnector } from 'wagmi/connectors/walletConnect'
-import { CoinbaseWalletConnector } from 'wagmi/connectors/coinbaseWallet'
 import { RainbowKitProvider, getDefaultWallets } from '@rainbow-me/rainbowkit'
 import '@rainbow-me/rainbowkit/styles.css'
 import './index.css'
@@ -21,22 +18,20 @@ const { chains, publicClient, webSocketPublicClient } = configureChains(
         polygon,
         optimism,
         arbitrum,
-        // Add custom Etherlink chain
         {
-            id: 1284,
+            id: 128123,
             name: 'Etherlink',
-            network: 'etherlink',
+            network: 'Etherlink Testnet',
             nativeCurrency: {
                 decimals: 18,
                 name: 'Tezos',
                 symbol: 'XTZ',
             },
             rpcUrls: {
-                public: { http: ['https://node.etherlink.com'] },
-                default: { http: ['https://node.etherlink.com'] },
+                public: { http: ['https://node.ghostnet.etherlink.com'] },
+                default: { http: ['https://node.ghostnet.etherlink.com'] },
             },
             blockExplorers: {
-                etherscan: { name: 'Etherlink Explorer', url: 'https://explorer.etherlink.com' },
                 default: { name: 'Etherlink Explorer', url: 'https://explorer.etherlink.com' },
             },
         },

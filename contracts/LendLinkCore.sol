@@ -8,12 +8,13 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./interfaces/ILendLinkCore.sol";
-import "./interfaces/IPriceOracle.sol";
+import "./interfaces/IPythPriceOracle.sol";
 import "./interfaces/ILSTToken.sol";
 
 /**
  * @title LendLinkCore
  * @dev Core lending protocol for LST collateral and stablecoin borrowing
+ * Now integrated with Pyth Network for real-time price feeds
  */
 contract LendLinkCore is ILendLinkCore, ReentrancyGuard, Pausable, Ownable {
     using SafeERC20 for IERC20;
@@ -27,7 +28,10 @@ contract LendLinkCore is ILendLinkCore, ReentrancyGuard, Pausable, Ownable {
     uint256 private constant MIN_LIQUIDATION_THRESHOLD = 0.8e18; // 80% min liquidation threshold
 
     // ============ State Variables ============
-    IPriceOracle public immutable priceOracle;
+    IPythPriceOracle public immutable pythPriceOracle;
+    
+    // Token to Pyth price feed ID mapping
+    mapping(address => bytes32) public tokenPriceFeedIds;
     
     // User positions mapping
     mapping(address => UserPosition) public userPositions;
@@ -65,12 +69,12 @@ contract LendLinkCore is ILendLinkCore, ReentrancyGuard, Pausable, Ownable {
     event CollateralConfigUpdated(address indexed token, bool isActive, uint256 ltv, uint256 liquidationThreshold);
     event BorrowConfigUpdated(address indexed token, bool isActive, uint256 interestRate);
     event ProtocolFeeUpdated(uint256 newFeeRate);
-
+    event PriceFeedIdSet(address indexed token, bytes32 indexed priceFeedId);
 
     // ============ Constructor ============
-    constructor(address _priceOracle) {
-        require(_priceOracle != address(0), "Invalid price oracle");
-        priceOracle = IPriceOracle(_priceOracle);
+    constructor(address _pythPriceOracle) {
+        require(_pythPriceOracle != address(0), "Invalid price oracle");
+        pythPriceOracle = IPythPriceOracle(_pythPriceOracle);
     }
 
     // ============ Modifiers ============
@@ -468,6 +472,13 @@ contract LendLinkCore is ILendLinkCore, ReentrancyGuard, Pausable, Ownable {
         return totalDebt;
     }
 
+    /**
+     * @dev Get Pyth price feed ID for a token
+     */
+    function getTokenPriceFeedId(address token) external view returns (bytes32) {
+        return tokenPriceFeedIds[token];
+    }
+
     // ============ Admin Functions ============
 
     /**
@@ -516,6 +527,17 @@ contract LendLinkCore is ILendLinkCore, ReentrancyGuard, Pausable, Ownable {
         });
         
         emit BorrowConfigUpdated(token, isActive, interestRate);
+    }
+
+    /**
+     * @dev Set Pyth price feed ID for a token
+     */
+    function setTokenPriceFeedId(address token, bytes32 priceFeedId) external onlyOwner {
+        require(token != address(0), "Invalid token address");
+        require(priceFeedId != bytes32(0), "Invalid price feed ID");
+        
+        tokenPriceFeedIds[token] = priceFeedId;
+        emit PriceFeedIdSet(token, priceFeedId);
     }
 
     /**
@@ -604,18 +626,24 @@ contract LendLinkCore is ILendLinkCore, ReentrancyGuard, Pausable, Ownable {
     }
 
     /**
-     * @dev Get token value in USD
+     * @dev Get token value in USD using Pyth price feeds
      */
     function _getTokenValue(address token, uint256 amount) internal view returns (uint256) {
-        uint256 price = priceOracle.getPrice(token);
+        bytes32 priceFeedId = tokenPriceFeedIds[token];
+        require(priceFeedId != bytes32(0), "Token price feed not configured");
+        
+        (uint256 price, ) = pythPriceOracle.getPrice(priceFeedId);
         return amount.mul(price).div(PRECISION);
     }
 
     /**
-     * @dev Get token amount from USD value
+     * @dev Get token amount from USD value using Pyth price feeds
      */
     function _getTokenAmount(address token, uint256 value) internal view returns (uint256) {
-        uint256 price = priceOracle.getPrice(token);
+        bytes32 priceFeedId = tokenPriceFeedIds[token];
+        require(priceFeedId != bytes32(0), "Token price feed not configured");
+        
+        (uint256 price, ) = pythPriceOracle.getPrice(priceFeedId);
         return value.mul(PRECISION).div(price);
     }
 

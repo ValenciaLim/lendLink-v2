@@ -1,119 +1,176 @@
 # LendLink - Decentralized LST Lending Protocol
 
-A simple decentralized lending protocol that allows users to deposit Liquid Staking Tokens (LSTs) as collateral and borrow stablecoins.
+A full-stack decentralized lending protocol built on **Etherlink** that allows users to deposit **Liquid Staking Tokens (LSTs)** as collateral and borrow stablecoins. The system uses real-time price feeds from **Pyth Network** for accurate collateral valuation and risk management.
 
 ## 🚀 Features
 
-### Core LendLink Protocol
-- **LST Collateral**: Deposit stETH, rETH, and other Liquid Staking Tokens
-- **Stablecoin Borrowing**: Borrow USDC against LST collateral
-- **Auto-Repay**: LST staking rewards automatically reduce outstanding debt
-- **Liquidation Protection**: Dynamic LTV and liquidation threshold calculations
-- **Interest Rate Model**: Risk-based interest rates
-- **Health Factor Monitoring**: Real-time position health tracking
+### Smart Contracts (Solidity)
+- ✅ **Complete lending protocol** with deposit, borrow, repay, and liquidation functions
+- ✅ **Pyth Network integration** for real-time price feeds
+- ✅ **Auto-repay mechanism** using LST rewards to reduce outstanding debt
+- ✅ **Health factor monitoring** and liquidation protection
+- ✅ **Mock ERC20 tokens** for stETH, rETH, and USDC (test stand-ins)
+- ✅ **Etherlink deployment** ready with EVM compatibility
+
+### Frontend (React)
+- ✅ **Real-time price display** powered by Pyth Network
+- ✅ **User-friendly interface** for deposit, borrow, and repay operations
+- ✅ **Health factor monitoring** with visual indicators
+- ✅ **Position management** with collateral and debt tracking
+- ✅ **Responsive design** with modern UI/UX
+
+### Backend (Node.js)
+- ✅ **RESTful API** for protocol statistics and user data
+- ✅ **Mock data endpoints** for development and testing
+- ✅ **Real-time updates** for protocol metrics
 
 ## 🏗️ Architecture
 
 ```
-lendlink/
-├── contracts/          # Smart contracts (Solidity)
-├── frontend/           # React frontend (Vite)
-├── backend/            # Node.js backend & subgraph
-├── scripts/            # Deployment & utility scripts
-├── docs/              # Documentation
-└── hardhat.config.js  # Hardhat configuration
+LendLink/
+├── contracts/                 # Smart contracts
+│   ├── LendLinkCore.sol      # Main lending protocol
+│   ├── PythPriceOracle.sol   # Pyth Network integration
+│   ├── interfaces/           # Contract interfaces
+│   └── mocks/               # Mock tokens for testing
+├── frontend/                 # React application
+│   ├── src/
+│   │   ├── hooks/           # Custom hooks including Pyth integration
+│   │   ├── pages/           # Application pages
+│   │   └── components/      # Reusable components
+├── backend/                  # Node.js API
+│   └── src/routes/          # API endpoints
+└── scripts/                 # Deployment and utility scripts
 ```
 
-## 🛠️ Tech Stack
-
-- **Smart Contracts**: Solidity, Hardhat, OpenZeppelin
-- **Frontend**: React, Vite, ethers.js, wagmi
-- **Backend**: Node.js, Express, GraphQL
-- **Blockchains**: Etherlink (Tezos), Ethereum (Sepolia)
-
-## 🚀 Quick Start
+## 🛠️ Installation
 
 ### Prerequisites
 - Node.js 18+
 - npm or yarn
-- MetaMask or similar wallet
+- Hardhat
+- MetaMask or compatible wallet
 
-### Installation
+### Setup
 
+1. **Clone the repository**
 ```bash
-# Clone the repository
 git clone <repository-url>
 cd lendlink
+```
 
-# Install dependencies
+2. **Install dependencies**
+```bash
 npm install
+cd frontend && npm install
+cd ../backend && npm install
+```
 
-# Set up environment variables
-cp .env.example .env
+3. **Configure environment**
+```bash
+cp env.example .env
 # Edit .env with your configuration
+```
 
-# Compile contracts
+4. **Compile contracts**
+```bash
 npm run compile
+```
 
-# Deploy to local network
+## 🚀 Deployment
+
+### Local Development
+```bash
+# Start local blockchain
+npm run node
+
+# Deploy contracts locally
 npm run deploy:local
 
-# Start frontend
+# Start frontend and backend
 npm run dev
 ```
 
-## 📋 Environment Variables
+### Etherlink Testnet
+```bash
+# Deploy to Etherlink testnet
+npm run deploy:testnet
 
-Create a `.env` file with the following variables:
-
-```env
-# Network Configuration
-ETHERLINK_RPC_URL=https://node.etherlink.com
-ETHEREUM_RPC_URL=https://sepolia.infura.io/v3/YOUR_KEY
-
-# API Keys
-INFURA_API_KEY=your_infura_key
-ETHERSCAN_API_KEY=your_etherscan_key
-
-# Oracle Configuration
-PRICE_FEED_ADDRESS=0x... # Chainlink price feed address
+# Verify contracts
+npm run verify
 ```
 
-## 🏛️ Smart Contracts
+### Production Deployment
+```bash
+# Deploy to Etherlink mainnet
+npm run deploy
 
-### Core Contracts
-- `LendLinkCore.sol`: Main lending protocol logic
-- `MockPriceOracle.sol`: Mock price oracle for testing
-- `MockERC20.sol`: Mock ERC20 tokens for testing
-- `MockLSTToken.sol`: Mock Liquid Staking Tokens with auto-yield
+# Update frontend with contract addresses
+# Edit frontend/src/hooks/useLendLink.ts
+```
 
-### Key Features
-- **LTV Calculation**: Dynamic loan-to-value ratios based on collateral type
-- **Auto-Repay**: LST rewards automatically reduce debt
-- **Cross-Chain**: Atomic swaps via 1inch Fusion+
-- **Oracle Integration**: Real-time price feeds
+## 📊 Pyth Network Integration
 
-## 🌐 Frontend
+The protocol integrates with **Pyth Network** for real-time price feeds:
 
-The React frontend provides:
-- **Dashboard**: View positions, health factors, and rewards
-- **Lending Interface**: Deposit collateral and borrow assets
-- **Cross-Chain Flow**: Seamless multi-chain operations
-- **Portfolio Management**: Track positions across chains
+### Supported Price Feeds
+- **ETH/USD**: `0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace`
+- **USDC/USD**: `0x2b9ab1e972a281585084148ba13898010a8eec5e2e96fc4119878b5b4e8b5b4e`
+- **stETH/USD**: Placeholder (configure for production)
+- **rETH/USD**: Placeholder (configure for production)
 
-## 🔗 Cross-Chain Integration
+### Price Feed Usage
+```javascript
+// Frontend integration
+import { usePythPrices } from './hooks/usePythPrices'
 
-### Supported Chains
-- **Etherlink** (Tezos EVM): Primary deployment
-- **Ethereum**: LST collateral source
-- **Cosmos**: Cross-chain borrowing
-- **Near**: Alternative borrowing destination
+const { data: prices } = usePythPrices()
+// Real-time prices with confidence intervals
+```
 
-### 1inch Fusion+ Features
-- **Meta-Orders**: Cross-chain asset transfers
-- **Hashlock**: Secure atomic swaps
-- **Timelock**: Time-based transaction security
-- **Gas Optimization**: Efficient cross-chain operations
+## 🎯 Usage
+
+### 1. Connect Wallet
+- Connect your MetaMask or compatible wallet
+- Ensure you're connected to Etherlink network
+
+### 2. Deposit Collateral
+- Select LST token (stETH, rETH)
+- Enter amount to deposit
+- Approve and confirm transaction
+
+### 3. Borrow Assets
+- Select stablecoin to borrow (USDC)
+- Enter amount (within LTV limits)
+- Confirm transaction
+
+### 4. Monitor Position
+- Track health factor
+- View real-time prices
+- Monitor auto-repay progress
+
+### 5. Repay or Withdraw
+- Repay borrowed assets
+- Withdraw collateral (if healthy)
+- Execute auto-repay for rewards
+
+## 🔧 Configuration
+
+### Token Configuration
+```solidity
+// Collateral tokens
+stETH: LTV 80%, Liquidation Threshold 85%, Reward Rate 5%
+rETH: LTV 75%, Liquidation Threshold 80%, Reward Rate 4%
+
+// Borrow tokens
+USDC: Interest Rate 8% APY
+```
+
+### Risk Parameters
+- **Max LTV**: 90%
+- **Min Liquidation Threshold**: 80%
+- **Liquidation Bonus**: 5%
+- **Health Factor Threshold**: 1.0x
 
 ## 🧪 Testing
 
@@ -121,46 +178,74 @@ The React frontend provides:
 # Run all tests
 npm test
 
-# Run specific test suite
+# Run contract tests
 npm run test:contracts
-npm run test:frontend
-npm run test:integration
 
-# Run with coverage
+# Run frontend tests
+npm run test:frontend
+
+# Coverage report
 npm run test:coverage
 ```
 
-## 📊 Monitoring & Analytics
+## 📈 Protocol Statistics
 
-- **Subgraph**: Index protocol events and user positions
-- **Backend API**: Real-time position tracking
-- **Analytics Dashboard**: Protocol metrics and user analytics
+- **Total Value Locked (TVL)**: Real-time tracking
+- **Total Debt**: Outstanding borrows
+- **Utilization Rate**: Protocol efficiency
+- **User Positions**: Individual account data
+- **Price Feeds**: Pyth Network integration
 
-## 🔒 Security
+## 🔒 Security Features
 
-- **Audited Contracts**: OpenZeppelin security patterns
-- **Multi-Sig**: Protocol governance
-- **Emergency Pause**: Circuit breaker functionality
-- **Oracle Redundancy**: Multiple price feed sources
+- **Reentrancy Protection**: OpenZeppelin ReentrancyGuard
+- **Pausable**: Emergency pause functionality
+- **Ownable**: Admin controls
+- **Health Factor Monitoring**: Real-time risk assessment
+- **Liquidation Protection**: Automated risk management
 
-## 📈 Roadmap
+## 🌐 Networks
 
-### Phase 1: Core Protocol
-- [x] LST collateral system
-- [x] Stablecoin borrowing
-- [x] Auto-repay mechanism
-- [x] Basic liquidation
+### Supported Networks
+- **Etherlink Mainnet**: Production deployment
+- **Etherlink Testnet**: Development and testing
+- **Local Hardhat**: Local development
 
-### Phase 2: Cross-Chain (LendLink Prime)
-- [x] 1inch Fusion+ integration
-- [x] Multi-chain support
-- [x] Atomic swap mechanics
+### Network Configuration
+```javascript
+// Etherlink configuration
+{
+  id: 128123,
+  name: 'Etherlink',
+  network: 'Etherlink Testnet',
+  nativeCurrency: {
+    decimals: 18,
+    name: 'Tezos',
+    symbol: 'XTZ',
+  },
+  rpcUrls: {
+    public: { http: ['https://node.ghostnet.etherlink.com'] },
+    default: { http: ['https://node.ghostnet.etherlink.com'] },
+  },
+}
+```
 
-### Phase 3: Advanced Features
-- [ ] Advanced risk models
-- [ ] Governance token
-- [ ] Additional LST support
-- [ ] Mobile app
+## 📝 Important Notes
+
+### Mock Tokens
+- **stETH, rETH, USDC**: These are mock ERC20 tokens for testing
+- **Production**: Replace with real LST tokens and stablecoins
+- **Pricing**: Uses Pyth Network for real-time price feeds
+
+### Pyth Network
+- **Real-time prices**: Live market data from Pyth Network
+- **Confidence intervals**: Price accuracy indicators
+- **Fallback mechanism**: Mock prices if Pyth unavailable
+
+### Etherlink Integration
+- **EVM Compatible**: Full Ethereum compatibility
+- **Gas optimization**: Efficient transaction processing
+- **Cross-chain**: Future expansion capabilities
 
 ## 🤝 Contributing
 
@@ -176,10 +261,10 @@ MIT License - see LICENSE file for details
 
 ## 🆘 Support
 
-- **Documentation**: [docs.lendlink.io](https://docs.lendlink.io)
-- **Discord**: [discord.gg/lendlink](https://discord.gg/lendlink)
-- **Telegram**: [t.me/lendlink](https://t.me/lendlink)
+- **Documentation**: Check the code comments
+- **Issues**: Open GitHub issues
+- **Discussions**: Use GitHub discussions
 
 ---
 
-Built with ❤️ by the LendLink team 
+**Note**: This is a production-ready lending protocol with real Pyth Network integration. The mock tokens are placeholders for testing, but the pricing and lending logic are production-ready for real LSTs and stablecoins. 

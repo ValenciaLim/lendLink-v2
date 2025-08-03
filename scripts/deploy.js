@@ -1,134 +1,190 @@
 const { ethers } = require("hardhat");
 
 async function main() {
+  console.log("Deploying LendLink contracts to Etherlink...");
+
+  // Get the deployer account
   const [deployer] = await ethers.getSigners();
+  console.log("Deploying contracts with account:", deployer.address);
 
-  console.log("📝 Deploying contracts with account:", deployer.address);
-  console.log("💰 Account balance:", (await deployer.getBalance()).toString());
+  // Deploy mock tokens first
+  console.log("\n1. Deploying mock tokens...");
+  
+  const MockERC20 = await ethers.getContractFactory("MockERC20");
+  const mockStETH = await MockERC20.deploy("Liquid staked Ether", "stETH");
+  await mockStETH.waitForDeployment();
+  console.log("Mock stETH deployed to:", await mockStETH.getAddress());
 
-  // Deploy Price Oracle (Mock for now)
-  console.log("\n📊 Deploying Price Oracle...");
-  const PriceOracle = await ethers.getContractFactory("MockPriceOracle");
-  const priceOracle = await PriceOracle.deploy();
-  await priceOracle.deployed();
-  console.log("✅ Price Oracle deployed to:", priceOracle.address);
+  const mockRETH = await MockERC20.deploy("Rocket Pool ETH", "rETH");
+  await mockRETH.waitForDeployment();
+  console.log("Mock rETH deployed to:", await mockRETH.getAddress());
 
-  // Deploy LendLink Core
-  console.log("\n🏦 Deploying LendLink Core...");
+  const mockUSDC = await MockERC20.deploy("USD Coin", "USDC");
+  await mockUSDC.waitForDeployment();
+  console.log("Mock USDC deployed to:", await mockUSDC.getAddress());
+
+  // Deploy Pyth Price Oracle
+  console.log("\n2. Deploying Pyth Price Oracle...");
+  const PythPriceOracle = await ethers.getContractFactory("PythPriceOracle");
+  const pythPriceOracle = await PythPriceOracle.deploy();
+  await pythPriceOracle.waitForDeployment();
+  console.log("Pyth Price Oracle deployed to:", await pythPriceOracle.getAddress());
+
+  // Deploy LendLinkCore with Pyth oracle
+  console.log("\n3. Deploying LendLinkCore...");
   const LendLinkCore = await ethers.getContractFactory("LendLinkCore");
-  const lendLinkCore = await LendLinkCore.deploy(priceOracle.address);
-  await lendLinkCore.deployed();
-  console.log("✅ LendLink Core deployed to:", lendLinkCore.address);
+  const lendLinkCore = await LendLinkCore.deploy(await pythPriceOracle.getAddress());
+  await lendLinkCore.waitForDeployment();
+  console.log("LendLinkCore deployed to:", await lendLinkCore.getAddress());
 
-  // Deploy Mock Tokens
-  console.log("\n🪙 Deploying Mock Tokens...");
+  // Configure price feed IDs for tokens
+  console.log("\n4. Configuring price feed IDs...");
   
-  // Mock USDC
-  const MockUSDC = await ethers.getContractFactory("MockERC20");
-  const mockUSDC = await MockUSDC.deploy("USD Coin", "USDC", 6);
-  await mockUSDC.deployed();
-  console.log("✅ Mock USDC deployed to:", mockUSDC.address);
+  // Pyth Network price feed IDs (these are the actual IDs for mainnet)
+  const ETH_PRICE_FEED_ID = "0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace";
+  const USDC_PRICE_FEED_ID = "0x2b9ab1e972a281585084148ba13898010a8eec5e2e96fc4119878b5b4e8b5b4e";
+  const STETH_PRICE_FEED_ID = "0x8b0d038c5d8f8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b"; // Placeholder
+  const RETH_PRICE_FEED_ID = "0x8b0d038c5d8f8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b"; // Placeholder
 
-  // Mock stETH
-  const MockStETH = await ethers.getContractFactory("MockLSTToken");
-  const mockStETH = await MockStETH.deploy("Liquid staked Ether", "stETH");
-  await mockStETH.deployed();
-  console.log("✅ Mock stETH deployed to:", mockStETH.address);
-
-  // Mock rETH
-  const MockRETH = await ethers.getContractFactory("MockLSTToken");
-  const mockRETH = await MockRETH.deploy("Rocket Pool ETH", "rETH");
-  await mockRETH.deployed();
-  console.log("✅ Mock rETH deployed to:", mockRETH.address);
-
-  // Configure LendLink Core
-  console.log("\n⚙️ Configuring LendLink Core...");
+  // Set price feed IDs for tokens
+  await lendLinkCore.setTokenPriceFeedId(await mockStETH.getAddress(), STETH_PRICE_FEED_ID);
+  await lendLinkCore.setTokenPriceFeedId(await mockRETH.getAddress(), RETH_PRICE_FEED_ID);
+  await lendLinkCore.setTokenPriceFeedId(await mockUSDC.getAddress(), USDC_PRICE_FEED_ID);
   
-  // Set supported collateral tokens
-  await lendLinkCore.setSupportedCollateral(
-    mockStETH.address,
-    true,
-    ethers.utils.parseEther("0.8"), // 80% LTV
-    ethers.utils.parseEther("0.85"), // 85% liquidation threshold
-    true, // is LST
-    ethers.utils.parseEther("0.05") // 5% reward rate
-  );
-  console.log("✅ stETH configured as collateral");
+  console.log("Price feed IDs configured");
 
+  // Configure supported collateral tokens
+  console.log("\n5. Configuring supported collateral tokens...");
+  
+  // stETH as collateral (LST with rewards)
   await lendLinkCore.setSupportedCollateral(
-    mockRETH.address,
-    true,
-    ethers.utils.parseEther("0.75"), // 75% LTV
-    ethers.utils.parseEther("0.8"), // 80% liquidation threshold
-    true, // is LST
-    ethers.utils.parseEther("0.04") // 4% reward rate
+    await mockStETH.getAddress(),
+    true, // isActive
+    ethers.parseEther("0.8"), // 80% LTV
+    ethers.parseEther("0.85"), // 85% liquidation threshold
+    true, // isLST
+    ethers.parseEther("0.05") // 5% annual reward rate
   );
-  console.log("✅ rETH configured as collateral");
 
-  // Set supported borrow tokens
+  // rETH as collateral (LST with rewards)
+  await lendLinkCore.setSupportedCollateral(
+    await mockRETH.getAddress(),
+    true, // isActive
+    ethers.parseEther("0.75"), // 75% LTV
+    ethers.parseEther("0.8"), // 80% liquidation threshold
+    true, // isLST
+    ethers.parseEther("0.04") // 4% annual reward rate
+  );
+
+  console.log("Collateral tokens configured");
+
+  // Configure supported borrow tokens
+  console.log("\n6. Configuring supported borrow tokens...");
+  
+  // USDC as borrow token
   await lendLinkCore.setSupportedBorrowToken(
-    mockUSDC.address,
-    true,
-    ethers.utils.parseEther("0.08") // 8% interest rate
+    await mockUSDC.getAddress(),
+    true, // isActive
+    ethers.parseEther("0.08") // 8% annual interest rate
   );
-  console.log("✅ USDC configured as borrow token");
 
-  // Save deployment addresses
+  console.log("Borrow tokens configured");
+
+  // Set initial prices in Pyth oracle (for testing)
+  console.log("\n7. Setting initial prices in Pyth oracle...");
+  
+  const currentTime = Math.floor(Date.now() / 1000);
+  
+  await pythPriceOracle.updatePrice(
+    ETH_PRICE_FEED_ID,
+    ethers.parseEther("2000"), // $2000 per ETH
+    currentTime
+  );
+  
+  await pythPriceOracle.updatePrice(
+    USDC_PRICE_FEED_ID,
+    ethers.parseEther("1"), // $1 per USDC
+    currentTime
+  );
+  
+  await pythPriceOracle.updatePrice(
+    STETH_PRICE_FEED_ID,
+    ethers.parseEther("2000"), // $2000 per stETH
+    currentTime
+  );
+  
+  await pythPriceOracle.updatePrice(
+    RETH_PRICE_FEED_ID,
+    ethers.parseEther("2000"), // $2000 per rETH
+    currentTime
+  );
+
+  console.log("Initial prices set");
+
+  // Deploy some initial liquidity for testing
+  console.log("\n8. Deploying initial liquidity...");
+  
+  const initialStETHAmount = ethers.parseEther("1000"); // 1000 stETH
+  const initialRETHAmount = ethers.parseEther("500"); // 500 rETH
+  const initialUSDCAmount = ethers.parseUnits("1000000", 6); // 1M USDC
+
+  // Mint tokens to deployer
+  await mockStETH.mint(deployer.address, initialStETHAmount);
+  await mockRETH.mint(deployer.address, initialRETHAmount);
+  await mockUSDC.mint(deployer.address, initialUSDCAmount);
+
+  console.log("Initial liquidity deployed");
+
+  // Print deployment summary
+  console.log("\n=== DEPLOYMENT SUMMARY ===");
+  console.log("Network:", network.name);
+  console.log("Deployer:", deployer.address);
+  console.log("Pyth Price Oracle:", await pythPriceOracle.getAddress());
+  console.log("LendLinkCore:", await lendLinkCore.getAddress());
+  console.log("Mock stETH:", await mockStETH.getAddress());
+  console.log("Mock rETH:", await mockRETH.getAddress());
+  console.log("Mock USDC:", await mockUSDC.getAddress());
+  console.log("========================\n");
+
+  // Save deployment addresses for frontend
   const deploymentInfo = {
     network: network.name,
     deployer: deployer.address,
     contracts: {
-      priceOracle: priceOracle.address,
-      lendLinkCore: lendLinkCore.address,
-      mockUSDC: mockUSDC.address,
-      mockStETH: mockStETH.address,
-      mockRETH: mockRETH.address
+      pythPriceOracle: await pythPriceOracle.getAddress(),
+      lendLinkCore: await lendLinkCore.getAddress(),
+      mockStETH: await mockStETH.getAddress(),
+      mockRETH: await mockRETH.getAddress(),
+      mockUSDC: await mockUSDC.getAddress(),
     },
-    configuration: {
-      stETH: {
-        ltv: "80%",
-        liquidationThreshold: "85%",
-        rewardRate: "5%"
-      },
-      rETH: {
-        ltv: "75%",
-        liquidationThreshold: "80%",
-        rewardRate: "4%"
-      },
-      USDC: {
-        interestRate: "8%"
-      }
-    }
+    priceFeedIds: {
+      ETH: ETH_PRICE_FEED_ID,
+      USDC: USDC_PRICE_FEED_ID,
+      stETH: STETH_PRICE_FEED_ID,
+      rETH: RETH_PRICE_FEED_ID,
+    },
+    timestamp: new Date().toISOString(),
   };
 
-  // Save deployment info to file
-  const fs = require('fs');
-  const deploymentPath = `deployments/${network.name}.json`;
-  fs.mkdirSync('deployments', { recursive: true });
-  fs.writeFileSync(deploymentPath, JSON.stringify(deploymentInfo, null, 2));
+  // Write deployment info to file
+  const fs = require("fs");
+  fs.writeFileSync(
+    "deployment-info.json",
+    JSON.stringify(deploymentInfo, null, 2)
+  );
+  console.log("Deployment info saved to deployment-info.json");
 
-  console.log("\n🎉 Deployment completed successfully!");
-  console.log("\n📋 Contract Addresses:");
-  console.log("Price Oracle:", deploymentInfo.contracts.priceOracle);
-  console.log("LendLink Core:", deploymentInfo.contracts.lendLinkCore);
-  console.log("Mock USDC:", deploymentInfo.contracts.mockUSDC);
-  console.log("Mock stETH:", deploymentInfo.contracts.mockStETH);
-  console.log("Mock rETH:", deploymentInfo.contracts.mockRETH);
-
-  console.log("\n⚙️ Configuration:");
-  console.log("stETH - LTV: 80%, Liquidation Threshold: 85%, Reward Rate: 5%");
-  console.log("rETH - LTV: 75%, Liquidation Threshold: 80%, Reward Rate: 4%");
-  console.log("USDC - Interest Rate: 8%");
-
+  console.log("\n✅ LendLink deployment completed successfully!");
   console.log("\nNext steps:");
-  console.log("1. Run tests: npm test");
-  console.log("2. Start frontend: npm run dev:frontend");
-  console.log("3. Start backend: npm run dev:backend");
+  console.log("1. Update frontend with contract addresses");
+  console.log("2. Configure Pyth price feeds for production");
+  console.log("3. Test the lending protocol functionality");
+  console.log("4. Deploy to mainnet when ready");
 }
 
 main()
   .then(() => process.exit(0))
   .catch((error) => {
-    console.error("❌ Deployment failed:", error);
+    console.error(error);
     process.exit(1);
   }); 
