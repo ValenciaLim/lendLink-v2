@@ -9,7 +9,7 @@ import {
     GlobeAltIcon,
     ArrowPathIcon
 } from '@heroicons/react/24/outline'
-import { useLendLink, formatUSD, formatTokenAmount, getHealthFactorStatus } from '../hooks/useLendLink'
+import { useLendLink, formatUSD, formatTokenAmount, getHealthFactorStatus, depositCollateral, borrow, repay, setupAutoRepay, getUserObligations } from '../hooks/useLendLink'
 import { useLendLinkPrime } from '../hooks/useLendLinkPrime'
 import { use1inch } from '../hooks/use1inch'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
@@ -38,7 +38,7 @@ export default function Lending() {
         clearError: clearError1inch
     } = use1inch()
 
-    const [activeTab, setActiveTab] = useState<'deposit' | 'borrow' | 'repay' | 'cross-chain'>('deposit')
+    const [activeTab, setActiveTab] = useState<'deposit' | 'borrow' | 'repay' | 'auto-repay' | 'cross-chain'>('deposit')
     const [selectedToken, setSelectedToken] = useState('')
     const [amount, setAmount] = useState('')
 
@@ -93,10 +93,56 @@ export default function Lending() {
         { address: '0x1111111111111111111111111111111111111111', symbol: 'USDC', name: 'USD Coin' },
     ]
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        // Handle transaction submission
-        console.log(`${activeTab} ${amount} ${selectedToken}`)
+        
+        if (!selectedToken || !amount) {
+            alert('Please select a token and enter amount')
+            return
+        }
+
+        const userAddress = '0x1234567890123456789012345678901234567890' // Mock address for now
+
+        try {
+            let result
+            switch (activeTab) {
+                case 'deposit':
+                    result = await depositCollateral(selectedToken, amount, userAddress)
+                    if (result.success) {
+                        alert(`Successfully deposited ${amount} ${selectedToken}`)
+                        setAmount('')
+                        setSelectedToken('')
+                    } else {
+                        alert('Failed to deposit collateral')
+                    }
+                    break
+                case 'borrow':
+                    result = await borrow(selectedToken, amount, userAddress)
+                    if (result.success) {
+                        alert(`Successfully borrowed ${amount} ${selectedToken}`)
+                        setAmount('')
+                        setSelectedToken('')
+                    } else {
+                        alert('Failed to borrow assets')
+                    }
+                    break
+                case 'repay':
+                    result = await repay(selectedToken, amount, userAddress)
+                    if (result.success) {
+                        alert(`Successfully repaid ${amount} ${selectedToken}`)
+                        setAmount('')
+                        setSelectedToken('')
+                    } else {
+                        alert('Failed to repay debt')
+                    }
+                    break
+                default:
+                    console.log(`${activeTab} ${amount} ${selectedToken}`)
+            }
+        } catch (error) {
+            console.error('Transaction error:', error)
+            alert('Transaction failed. Please try again.')
+        }
     }
 
     const handleCrossChainSubmit = async (e: React.FormEvent) => {
@@ -174,9 +220,6 @@ export default function Lending() {
                         Deposit LSTs as collateral and borrow stablecoins
                     </p>
                 </div>
-                <div className="mt-4 sm:mt-0">
-                    <ConnectButton />
-                </div>
             </div>
 
             {/* Health Factor Warning */}
@@ -228,6 +271,16 @@ export default function Lending() {
                     >
                         <BanknotesIcon className="h-4 w-4 inline mr-2" />
                         Repay
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('auto-repay')}
+                        className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'auto-repay'
+                            ? 'border-primary-500 text-primary-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                            }`}
+                    >
+                        <ArrowPathIcon className="h-4 w-4 inline mr-2" />
+                        Auto-Repay
                     </button>
                     <button
                         onClick={() => setActiveTab('cross-chain')}
@@ -369,6 +422,99 @@ export default function Lending() {
                             Repay Debt
                         </button>
                     </form>
+                </div>
+            )}
+
+            {activeTab === 'auto-repay' && (
+                <div className="bg-white rounded-lg shadow p-6">
+                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Automatic Interest Repayment</h2>
+                    <div className="space-y-6">
+                        {/* Auto-Repay Status */}
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <div className="flex items-center">
+                                <ArrowPathIcon className="h-5 w-5 text-blue-600 mr-2" />
+                                <div>
+                                    <h3 className="text-sm font-medium text-blue-900">Auto-Repay Status</h3>
+                                    <p className="text-sm text-blue-700">
+                                        Automatically repay loan interest using LST earnings
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Setup Auto-Repay Form */}
+                        <form onSubmit={async (e) => {
+                            e.preventDefault()
+                            if (!selectedToken || !amount) {
+                                alert('Please select LST token and enter frequency')
+                                return
+                            }
+                            
+                            const userAddress = '0x1234567890123456789012345678901234567890'
+                            const loanId = '0x1234567890123456789012345678901234567890123456789012345678901234'
+                            
+                            try {
+                                const result = await setupAutoRepay(userAddress, loanId, selectedToken, amount)
+                                if (result.success) {
+                                    alert('Auto-repay schedule created successfully!')
+                                    setAmount('')
+                                    setSelectedToken('')
+                                } else {
+                                    alert('Failed to setup auto-repay')
+                                }
+                            } catch (error) {
+                                console.error('Auto-repay setup error:', error)
+                                alert('Failed to setup auto-repay')
+                            }
+                        }} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    LST Token
+                                </label>
+                                <select
+                                    value={selectedToken}
+                                    onChange={(e) => setSelectedToken(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                >
+                                    <option value="">Select LST token</option>
+                                    <option value="stETH">stETH - Lido Finance</option>
+                                    <option value="rETH">rETH - Rocket Pool</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Repayment Frequency
+                                </label>
+                                <select
+                                    value={amount}
+                                    onChange={(e) => setAmount(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                >
+                                    <option value="">Select frequency</option>
+                                    <option value="daily">Daily</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="monthly">Monthly</option>
+                                </select>
+                            </div>
+                            <button
+                                type="submit"
+                                className="w-full bg-primary-600 text-white py-2 px-4 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            >
+                                Setup Auto-Repay
+                            </button>
+                        </form>
+
+                        {/* Auto-Repay Benefits */}
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                            <h3 className="text-sm font-medium text-green-900 mb-2">Benefits</h3>
+                            <ul className="text-sm text-green-700 space-y-1">
+                                <li>• Automatic interest payments using LST yield</li>
+                                <li>• No manual intervention required</li>
+                                <li>• Optimized for gas efficiency</li>
+                                <li>• Real-time yield monitoring</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             )}
 

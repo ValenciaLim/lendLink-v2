@@ -52,9 +52,6 @@ export default function Settings() {
                         Manage your preferences and protocol settings
                     </p>
                 </div>
-                <div className="mt-4 sm:mt-0">
-                    <ConnectButton />
-                </div>
             </div>
 
             {/* Settings Sections */}

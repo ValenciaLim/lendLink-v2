@@ -46,9 +46,6 @@ export default function Dashboard() {
                         Monitor your lending positions and market prices
                     </p>
                 </div>
-                <div className="mt-4 sm:mt-0">
-                    <ConnectButton />
-                </div>
             </div>
 
             {/* Protocol Overview Cards */}

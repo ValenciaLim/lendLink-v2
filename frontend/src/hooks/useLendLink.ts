@@ -200,6 +200,74 @@ export function useAutoRepay() {
     return useContractWrite(config)
 }
 
+// Real API functions for lending operations
+export async function depositCollateral(token: string, amount: string, userAddress: string) {
+    try {
+        const response = await axios.post(`${API_BASE_URL}/lending/deposit`, {
+            token,
+            amount,
+            userAddress
+        })
+        return response.data
+    } catch (error) {
+        console.error('Deposit error:', error)
+        throw error
+    }
+}
+
+export async function borrow(token: string, amount: string, userAddress: string) {
+    try {
+        const response = await axios.post(`${API_BASE_URL}/lending/borrow`, {
+            token,
+            amount,
+            userAddress
+        })
+        return response.data
+    } catch (error) {
+        console.error('Borrow error:', error)
+        throw error
+    }
+}
+
+export async function repay(token: string, amount: string, userAddress: string) {
+    try {
+        const response = await axios.post(`${API_BASE_URL}/lending/repay`, {
+            token,
+            amount,
+            userAddress
+        })
+        return response.data
+    } catch (error) {
+        console.error('Repay error:', error)
+        throw error
+    }
+}
+
+export async function setupAutoRepay(userAddress: string, loanId: string, lstToken: string, frequency: string) {
+    try {
+        const response = await axios.post(`${API_BASE_URL}/scheduler/setup-auto-repay`, {
+            userAddress,
+            loanId,
+            lstToken,
+            frequency
+        })
+        return response.data
+    } catch (error) {
+        console.error('Setup auto-repay error:', error)
+        throw error
+    }
+}
+
+export async function getUserObligations(userAddress: string) {
+    try {
+        const response = await axios.get(`${API_BASE_URL}/interest/user-obligations/${userAddress}`)
+        return response.data
+    } catch (error) {
+        console.error('Get user obligations error:', error)
+        throw error
+    }
+}
+
 // Utility functions
 export function formatTokenAmount(amount: bigint, decimals: number = 18): string {
     return ethers.formatUnits(amount, decimals)
