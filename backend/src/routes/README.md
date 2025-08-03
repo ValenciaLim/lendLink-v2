@@ -44,6 +44,31 @@ This document outlines the route structure and purpose of each endpoint in the L
   - `GET /gas-price` - Get gas price
   - `GET /chains` - Get supported chains
 
+### `/api/v1/lst` - Liquid Staking Token Management
+- **Purpose**: LST yield tracking and automatic interest management
+- **Key Endpoints**:
+  - `GET /yield-rates` - Get current LST yield rates
+  - `GET /user-earnings/:address` - Get user's LST earnings
+  - `POST /auto-repay` - Trigger automatic repayment using LST interest
+  - `GET /protocols` - Get supported LST protocols
+
+### `/api/v1/interest` - Interest Management
+- **Purpose**: Loan interest rates and automatic settlement
+- **Key Endpoints**:
+  - `GET /loan-rates` - Get current loan interest rates
+  - `GET /user-obligations/:address` - Get user's interest obligations
+  - `POST /auto-settle` - Automatically settle interest using LST earnings
+  - `GET /auto-settle-status/:address` - Get automatic settlement status
+
+### `/api/v1/scheduler` - Automatic Repayment Scheduling
+- **Purpose**: Schedule and manage automatic repayments
+- **Key Endpoints**:
+  - `POST /setup-auto-repay` - Setup automatic repayment schedule
+  - `GET /user-schedules/:address` - Get user's repayment schedules
+  - `PUT /update-schedule/:scheduleId` - Update existing schedule
+  - `DELETE /delete-schedule/:scheduleId` - Delete repayment schedule
+  - `POST /execute-schedule/:scheduleId` - Manually execute scheduled repayment
+
 ## Route Differentiation
 
 ### Quote Routes
@@ -65,6 +90,9 @@ This document outlines the route structure and purpose of each endpoint in the L
 2. **For General Swaps**: Use `/1inch/*` routes
 3. **For Analytics**: Use `/analytics/*` routes
 4. **For Core Lending**: Use `/lending/*` routes
+5. **For LST Management**: Use `/lst/*` routes
+6. **For Interest Management**: Use `/interest/*` routes
+7. **For Automatic Scheduling**: Use `/scheduler/*` routes
 
 ## API Versioning
 
