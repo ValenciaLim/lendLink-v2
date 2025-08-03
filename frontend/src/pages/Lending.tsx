@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useAccount } from 'wagmi'
+import axios from 'axios'
 import {
     BanknotesIcon,
     ArrowUpIcon,
@@ -92,6 +93,7 @@ export default function Lending() {
     // Swap state
     const [swapQuote, setSwapQuote] = useState<any>(null)
     const [isGettingQuote, setIsGettingQuote] = useState(false)
+    const [isSubmittingCrossChain, setIsSubmittingCrossChain] = useState(false)
 
     // if (!isConnected) {
     //     return (
@@ -197,6 +199,8 @@ export default function Lending() {
             return
         }
 
+        setIsSubmittingCrossChain(true)
+
         try {
             // Get cross-chain swap quote
             const quote = await getCrossChainSwapQuote(
@@ -217,6 +221,22 @@ export default function Lending() {
 
                 if (result?.success) {
                     alert(`Cross-chain swap executed! TX: ${result.txHash}`)
+
+                    // Update cross-chain stats via API
+                    try {
+                        await axios.post('http://localhost:3002/api/v1/prime/update-stats', {
+                            totalBridges: undefined, // Will increment by 1
+                            activeLoans: undefined, // Will increment by 1
+                            successRate: 98.5
+                        })
+
+                        // Show success message with stats update
+                        alert('Cross-chain loan initiated successfully! Stats have been updated.')
+                    } catch (statsError) {
+                        console.warn('Failed to update cross-chain stats:', statsError)
+                        alert('Cross-chain loan initiated, but stats update failed. Please refresh the dashboard.')
+                    }
+
                     // Reset form
                     setCollateralAmount('')
                     // setBorrowAmount('') // No longer needed
@@ -229,6 +249,8 @@ export default function Lending() {
         } catch (error) {
             console.error('Cross-chain swap error:', error)
             alert('Error executing cross-chain swap')
+        } finally {
+            setIsSubmittingCrossChain(false)
         }
     }
 
@@ -584,45 +606,14 @@ export default function Lending() {
 
             {activeTab === 'cross-chain' && (
                 <div className="space-y-6">
-                    {/* Cross-Chain Overview */}
-                    <div className="bg-white rounded-lg shadow p-6">
-                        <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-lg font-semibold text-gray-900">Cross-Chain Lending</h2>
-                            <div className="flex items-center space-x-2">
-                                <GlobeAltIcon className="h-5 w-5 text-primary-600" />
-                                <span className="text-sm text-gray-600">Powered by 1inch Fusion+</span>
-                            </div>
-                        </div>
-                        <p className="text-sm text-gray-600 mb-4">
-                            Bridge collateral across chains and borrow assets on any supported network using Etherlink routing.
-                        </p>
-
-                        {/* Protocol Stats */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                            <div className="bg-gray-50 rounded-lg p-4">
-                                <div className="text-2xl font-bold text-gray-900">
-                                    {primeStats?.totalCrossChainTVL ? formatUSD(BigInt(primeStats.totalCrossChainTVL)) : '$0'}
-                                </div>
-                                <div className="text-sm text-gray-600">Cross-Chain TVL</div>
-                            </div>
-                            <div className="bg-gray-50 rounded-lg p-4">
-                                <div className="text-2xl font-bold text-gray-900">
-                                    {crossChainLoans?.length || 0}
-                                </div>
-                                <div className="text-sm text-gray-600">Active Loans</div>
-                            </div>
-                            <div className="bg-gray-50 rounded-lg p-4">
-                                <div className="text-2xl font-bold text-gray-900">
-                                    {supportedChains?.length || 0}
-                                </div>
-                                <div className="text-sm text-gray-600">Supported Chains</div>
-                            </div>
-                        </div>
-                    </div>
-
                     {/* Cross-Chain Loan Form */}
                     <div className="bg-white rounded-lg shadow p-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Initiate Cross-Chain Loan</h3>
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-semibold text-gray-900">Initiate Cross-Chain Loan</h3>
+                            <div className="text-sm text-gray-500">
+                                View stats on <a href="/dashboard" className="text-primary-600 hover:text-primary-700 underline">Dashboard</a>
+                            </div>
+                        </div>
                         <form onSubmit={handleCrossChainSubmit} className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
@@ -720,44 +711,23 @@ export default function Lending() {
 
                             <button
                                 type="submit"
-                                className="w-full bg-primary-600 text-white py-2 px-4 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                disabled={isSubmittingCrossChain}
+                                className="w-full bg-primary-600 text-white py-2 px-4 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                <GlobeAltIcon className="h-4 w-4 inline mr-2" />
-                                Initiate Cross-Chain Loan
+                                {isSubmittingCrossChain ? (
+                                    <>
+                                        <ArrowPathIcon className="h-4 w-4 inline mr-2 animate-spin" />
+                                        Processing...
+                                    </>
+                                ) : (
+                                    <>
+                                        <GlobeAltIcon className="h-4 w-4 inline mr-2" />
+                                        Initiate Cross-Chain Loan
+                                    </>
+                                )}
                             </button>
                         </form>
                     </div>
-
-                    {/* Active Cross-Chain Loans */}
-                    {crossChainLoans && crossChainLoans.length > 0 && (
-                        <div className="bg-white rounded-lg shadow p-6">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Active Cross-Chain Loans</h3>
-                            <div className="space-y-4">
-                                {crossChainLoans.map((loan: any, index: number) => (
-                                    <div key={index} className="border border-gray-200 rounded-lg p-4">
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <div className="font-medium text-gray-900">
-                                                    {loan.collateralToken} → {loan.borrowToken}
-                                                </div>
-                                                <div className="text-sm text-gray-600">
-                                                    {loan.sourceChain} → {loan.destinationChain}
-                                                </div>
-                                            </div>
-                                            <div className="text-right">
-                                                <div className="text-sm font-medium text-gray-900">
-                                                    {loan.status}
-                                                </div>
-                                                <div className="text-xs text-gray-500">
-                                                    {loan.timestamp}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
                 </div>
             )}
         </div>

@@ -23,7 +23,7 @@ export default function Dashboard() {
     const { data: prices, isLoading: isLoadingPrices } = usePythPrices()
 
     // Get cross-chain stats
-    const { data: crossChainStats, isLoading: isLoadingCrossChainStats } = useQuery({
+    const { data: crossChainStats, isLoading: isLoadingCrossChainStats, refetch: refetchCrossChainStats } = useQuery({
         queryKey: ['crossChainStats'],
         queryFn: async () => {
             try {
@@ -38,7 +38,7 @@ export default function Dashboard() {
                 }
             }
         },
-        refetchInterval: 10000 // Refetch every 10 seconds
+        refetchInterval: 5000 // Refetch every 5 seconds for more responsive updates
     })
 
     if (isLoadingPrime || isLoadingCrossChainStats || isLoadingPrices) {
@@ -247,15 +247,58 @@ export default function Dashboard() {
                 </div>
             </div>
 
+            {/* Cross-Chain Lending Overview */}
+            <div className="bg-white rounded-lg shadow p-6">
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold text-gray-900">Cross-Chain Lending</h2>
+                    <div className="flex items-center space-x-2">
+                        <GlobeAltIcon className="h-5 w-5 text-primary-600" />
+                        <span className="text-sm text-gray-600">Powered by 1inch Fusion+</span>
+                        <button
+                            onClick={() => refetchCrossChainStats()}
+                            className="ml-2 p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                            title="Refresh cross-chain stats"
+                        >
+                            <ArrowPathIcon className="h-4 w-4" />
+                        </button>
+                    </div>
+                </div>
+                <p className="text-sm text-gray-600 mb-4">
+                    Bridge collateral across chains and borrow assets on any supported network using Etherlink routing.
+                </p>
+
+                {/* Protocol Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div className="bg-gray-50 rounded-lg p-4">
+                        <div className="text-2xl font-bold text-gray-900">
+                            {protocolStats?.totalCrossChainTVL ? formatUSD(BigInt(protocolStats.totalCrossChainTVL)) : '$0'}
+                        </div>
+                        <div className="text-sm text-gray-600">Cross-Chain TVL</div>
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-4">
+                        <div className="text-2xl font-bold text-gray-900">
+                            {crossChainLoans?.length || 0}
+                        </div>
+                        <div className="text-sm text-gray-600">Active Loans</div>
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-4">
+                        <div className="text-2xl font-bold text-gray-900">
+                            {supportedChains?.length || 0}
+                        </div>
+                        <div className="text-sm text-gray-600">Supported Chains</div>
+                    </div>
+                </div>
+            </div>
+
             {/* Recent Cross-Chain Activity */}
             {crossChainLoans && crossChainLoans.length > 0 && (
                 <div className="bg-white rounded-lg shadow">
                     <div className="px-6 py-4 border-b border-gray-200">
-                        <h2 className="text-lg font-semibold text-gray-900">Recent Cross-Chain Activity</h2>
+                        <h2 className="text-lg font-semibold text-gray-900">Active Cross-Chain Loans</h2>
                     </div>
                     <div className="p-6">
                         <div className="space-y-4">
-                            {crossChainLoans.slice(0, 3).map((loan: any, index: number) => (
+                            {crossChainLoans.map((loan: any, index: number) => (
                                 <div key={index} className="border border-gray-200 rounded-lg p-4">
                                     <div className="flex items-center justify-between">
                                         <div>

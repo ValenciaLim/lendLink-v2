@@ -55,6 +55,7 @@ export interface ProtocolStats {
     totalUsers: number
     totalTransactions: number
     totalRepayments: number
+    totalCrossChainTVL?: string
 }
 
 // Mock data for development

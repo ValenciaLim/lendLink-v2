@@ -24,6 +24,16 @@ const mockPrimeData = {
   }
 };
 
+// Initialize global stats if not exists
+if (!global.crossChainStats) {
+  global.crossChainStats = {
+    totalBridges: 150,
+    activeLoans: 25,
+    successRate: 98.5,
+    lastUpdate: new Date().toISOString()
+  };
+}
+
 /**
  * @route GET /api/v1/prime/overview
  * @desc Get LendLink Prime protocol overview
@@ -98,33 +108,40 @@ router.post('/execute-cross-chain-swap', async (req, res) => {
     const result = await oneInchService.executeCrossChainSwap(swapData);
     
     // Update cross-chain stats
-    const crossChainStats = {
-      totalBridges: (global.crossChainStats?.totalBridges || 0) + 1,
-      activeLoans: (global.crossChainStats?.activeLoans || 0) + 1,
+    const currentStats = global.crossChainStats || {
+      totalBridges: 0,
+      activeLoans: 0,
+      successRate: 98.5,
+      lastUpdate: new Date().toISOString()
+    };
+    
+    const updatedStats = {
+      totalBridges: currentStats.totalBridges + 1,
+      activeLoans: currentStats.activeLoans + 1,
       successRate: 98.5, // Mock success rate
       lastUpdate: new Date().toISOString()
     };
     
     // Store stats globally (in production, this would be in a database)
-    global.crossChainStats = crossChainStats;
+    global.crossChainStats = updatedStats;
   
-  res.json({
-    success: true,
+    res.json({
+      success: true,
       message: 'Cross-chain swap executed successfully for lending',
       data: {
         swapId: result.txHash,
         loanId,
-    srcToken,
-    dstToken,
+        srcToken,
+        dstToken,
         srcChainId: parseInt(srcChainId),
         dstChainId: parseInt(dstChainId),
-    srcAmount: amount,
-        dstAmount: quote.toTokenAmount,
+        srcAmount: amount,
+        dstAmount: quote.dstAmount || quote.toTokenAmount,
         slippage: 0.005,
         purpose: 'cross-chain-lending',
         timestamp: new Date().toISOString(),
         transactionHash: result.txHash,
-        stats: crossChainStats
+        stats: updatedStats
       }
     });
   } catch (error) {
@@ -132,6 +149,45 @@ router.post('/execute-cross-chain-swap', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to execute cross-chain swap',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route POST /api/v1/prime/update-stats
+ * @desc Update cross-chain statistics
+ */
+router.post('/update-stats', (req, res) => {
+  try {
+    const { totalBridges, activeLoans, successRate } = req.body;
+    
+    const currentStats = global.crossChainStats || {
+      totalBridges: 0,
+      activeLoans: 0,
+      successRate: 98.5,
+      lastUpdate: new Date().toISOString()
+    };
+    
+    const updatedStats = {
+      totalBridges: totalBridges !== undefined ? totalBridges : currentStats.totalBridges,
+      activeLoans: activeLoans !== undefined ? activeLoans : currentStats.activeLoans,
+      successRate: successRate !== undefined ? successRate : currentStats.successRate,
+      lastUpdate: new Date().toISOString()
+    };
+    
+    global.crossChainStats = updatedStats;
+    
+    res.json({
+      success: true,
+      message: 'Cross-chain stats updated successfully',
+      data: updatedStats
+    });
+  } catch (error) {
+    console.error('Error updating cross-chain stats:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update cross-chain stats',
       error: error.message
     });
   }
