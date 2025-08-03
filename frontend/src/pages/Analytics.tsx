@@ -13,7 +13,7 @@ import { ConnectButton } from '@rainbow-me/rainbowkit'
 export default function Analytics() {
     const { isConnected } = useAccount()
     const { totalTVL, totalDebt, protocolStats } = useLendLink()
-    
+
     // Get recent activity
     const { data: recentActivity, isLoading: isLoadingActivity } = useQuery({
         queryKey: ['recentActivity'],
@@ -144,53 +144,52 @@ export default function Analytics() {
             <div className="bg-white shadow rounded-lg">
                 <div className="px-4 py-5 sm:p-6">
                     <h3 className="text-lg leading-6 font-medium text-gray-900">Recent Activity</h3>
-                                         <div className="mt-4">
-                         {isLoadingActivity ? (
-                             <div className="text-center py-4">
-                                 <div className="spinner w-6 h-6 mx-auto"></div>
-                                 <p className="text-sm text-gray-500 mt-2">Loading recent activity...</p>
-                             </div>
-                         ) : recentActivity && recentActivity.length > 0 ? (
-                             <div className="flow-root">
-                                 <ul className="-mb-8">
-                                     {recentActivity.map((activity: any, index: number) => (
-                                         <li key={activity.id}>
-                                             <div className={`relative ${index < recentActivity.length - 1 ? 'pb-8' : ''}`}>
-                                                 <div className="relative flex space-x-3">
-                                                     <div>
-                                                         <span className={`h-8 w-8 rounded-full flex items-center justify-center ring-8 ring-white ${
-                                                             activity.type === 'deposit' ? 'bg-green-500' :
-                                                             activity.type === 'borrow' ? 'bg-blue-500' :
-                                                             activity.type === 'repay' ? 'bg-purple-500' : 'bg-gray-500'
-                                                         }`}>
-                                                             <CurrencyDollarIcon className="h-4 w-4 text-white" />
-                                                         </span>
-                                                     </div>
-                                                     <div className="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
-                                                         <div>
-                                                             <p className="text-sm text-gray-500">
-                                                                 {activity.type === 'deposit' ? 'New deposit of' :
-                                                                  activity.type === 'borrow' ? 'Borrow of' :
-                                                                  activity.type === 'repay' ? 'Repayment of' : 'Transaction'}
-                                                                 <span className="font-medium text-gray-900"> {activity.amount} {activity.token}</span>
-                                                             </p>
-                                                         </div>
-                                                         <div className="text-right text-sm whitespace-nowrap text-gray-500">
-                                                             <time>{new Date(activity.timestamp).toLocaleTimeString()}</time>
-                                                         </div>
-                                                     </div>
-                                                 </div>
-                                             </div>
-                                         </li>
-                                     ))}
-                                 </ul>
-                             </div>
-                         ) : (
-                             <div className="text-center py-4">
-                                 <p className="text-sm text-gray-500">No recent activity</p>
-                             </div>
-                         )}
-                     </div>
+                    <div className="mt-4">
+                        {isLoadingActivity ? (
+                            <div className="text-center py-4">
+                                <div className="spinner w-6 h-6 mx-auto"></div>
+                                <p className="text-sm text-gray-500 mt-2">Loading recent activity...</p>
+                            </div>
+                        ) : recentActivity && recentActivity.length > 0 ? (
+                            <div className="flow-root">
+                                <ul className="-mb-8">
+                                    {recentActivity.map((activity: any, index: number) => (
+                                        <li key={activity.id}>
+                                            <div className={`relative ${index < recentActivity.length - 1 ? 'pb-8' : ''}`}>
+                                                <div className="relative flex space-x-3">
+                                                    <div>
+                                                        <span className={`h-8 w-8 rounded-full flex items-center justify-center ring-8 ring-white ${activity.type === 'deposit' ? 'bg-green-500' :
+                                                            activity.type === 'borrow' ? 'bg-blue-500' :
+                                                                activity.type === 'repay' ? 'bg-purple-500' : 'bg-gray-500'
+                                                            }`}>
+                                                            <CurrencyDollarIcon className="h-4 w-4 text-white" />
+                                                        </span>
+                                                    </div>
+                                                    <div className="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
+                                                        <div>
+                                                            <p className="text-sm text-gray-500">
+                                                                {activity.type === 'deposit' ? 'New deposit of' :
+                                                                    activity.type === 'borrow' ? 'Borrow of' :
+                                                                        activity.type === 'repay' ? 'Repayment of' : 'Transaction'}
+                                                                <span className="font-medium text-gray-900"> {activity.amount} {activity.token}</span>
+                                                            </p>
+                                                        </div>
+                                                        <div className="text-right text-sm whitespace-nowrap text-gray-500">
+                                                            <time>{new Date(activity.timestamp).toLocaleTimeString()}</time>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        ) : (
+                            <div className="text-center py-4">
+                                <p className="text-sm text-gray-500">No recent activity</p>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

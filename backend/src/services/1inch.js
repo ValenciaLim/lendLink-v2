@@ -281,11 +281,15 @@ class OneInchService {
         dst: dstToken,
         amount: amount,
         srcChainId: srcChainId,
-        dstChainId: dstChainId
+        dstChainId: dstChainId,
+        receiver: '0x0000000000000000000000000000000000000000', // Default receiver
+        enableEstimate: true,
+        permit: '',
+        burnToken: false
       };
 
       const response = await axios.get(
-        `${this.baseURL}/fusion/v1.0/quote`,
+        `${this.baseURL}/fusion/v1.0/quote/receive`,
         { headers: this.headers, params }
       );
 
@@ -325,9 +329,18 @@ class OneInchService {
    */
   async executeCrossChainSwap(swapData) {
     try {
+      // Prepare the submit data according to 1inch Fusion+ API
+      const submitData = {
+        quoteId: swapData.quoteId,
+        order: swapData.order,
+        signature: swapData.signature || '',
+        permit: swapData.permit || '',
+        receiver: swapData.receiver || '0x0000000000000000000000000000000000000000'
+      };
+
       const response = await axios.post(
-        `${this.baseURL}/fusion/v1.0/swap`,
-        swapData,
+        `${this.baseURL}/fusion/v1.0/submit`,
+        submitData,
         { headers: this.headers }
       );
 
