@@ -20,6 +20,12 @@
 - **Real-time Price Feeds**: Pyth Network across all supported chains
 - **Unified Interface**: Cross-chain features seamlessly integrated into existing UI
 
+### 🔗 1inch API Integration
+- **Swap Protocols**: Classic Swap, Fusion Swap, Cross-Chain Swap, Limit Orders
+- **Data APIs**: Real-time price feeds, wallet balances, token metadata
+- **Web3 APIs**: Transaction status, gas prices, blockchain data
+- **Comprehensive Coverage**: All major 1inch APIs integrated
+
 ## 🏗️ Architecture
 
 ```
@@ -28,9 +34,9 @@
 │   (React)       │◄──►│   (Express.js)  │◄──►│   Contracts     │
 │                 │    │                 │    │   (Solidity)    │
 │ • Dashboard     │    │ • API Routes    │    │                 │
-│ • Lending       │    │ • Prime Routes  │    │ • LendLinkCore  │
-│ • Analytics     │    │ • Mock Data     │    │ • LendLinkPrime │
-│ • Settings      │    │                 │    │ • Mock Tokens   │
+│ • Lending       │    │ • 1inch Routes  │    │ • LendLinkCore  │
+│ • Analytics     │    │ • Prime Routes  │    │ • LendLinkPrime │
+│ • Settings      │    │ • Mock Data     │    │ • Mock Tokens   │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
          │                       │                       │
          │                       │                       │
@@ -39,7 +45,7 @@
 │   External      │    │   Etherlink     │    │   Pyth Network  │
 │   Services      │    │   L2 Network    │    │   Price Feeds   │
 │                 │    │                 │    │                 │
-│ • 1inch Fusion+ │    │ • Fast TPS      │    │ • Real-time     │
+│ • 1inch APIs    │    │ • Fast TPS      │    │ • Real-time     │
 │ • WalletConnect │    │ • Low Fees      │    │ • Multi-chain   │
 │ • Pyth Network  │    │ • EVM Compatible│    │ • Reliable       │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
@@ -300,6 +306,8 @@ lendlink/
 ## 📚 Additional Documentation
 
 For detailed information about the LendLink Prime cross-chain extension, see [README-PRIME.md](README-PRIME.md).
+
+For comprehensive 1inch API integration details, see [README-1INCH-INTEGRATION.md](README-1INCH-INTEGRATION.md).
 
 ## 🤝 Contributing
 

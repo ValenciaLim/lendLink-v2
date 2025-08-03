@@ -1,5 +1,8 @@
 const express = require('express');
 const router = express.Router();
+const OneInchService = require('../services/1inch');
+
+const oneInchService = new OneInchService();
 
 // Mock data for LendLink Prime
 const mockPrimeData = {
@@ -87,27 +90,52 @@ router.post('/initiate-loan', (req, res) => {
  * @route POST /api/v1/prime/execute-swap
  * @desc Execute cross-chain swap via 1inch Fusion+
  */
-router.post('/execute-swap', (req, res) => {
-  const { loanId, srcToken, dstToken, amount, minReturn } = req.body;
-  
-  // Mock swap execution response
-  const swapId = '0x' + Math.random().toString(16).substr(2, 64);
-  const returnAmount = amount * 0.995; // 0.5% slippage
-  
-  res.json({
-    success: true,
-    message: 'Cross-chain swap executed successfully',
-    data: {
-      swapId,
-      loanId,
-      srcToken,
-      dstToken,
-      srcAmount: amount,
-      dstAmount: returnAmount,
-      slippage: 0.005,
-      timestamp: new Date().toISOString()
+router.post('/execute-swap', async (req, res) => {
+  try {
+    const { loanId, srcToken, dstToken, amount, minReturn, chainId = 1, from } = req.body;
+    
+    if (!srcToken || !dstToken || !amount) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required parameters: srcToken, dstToken, amount'
+      });
     }
-  });
+
+    // First get quote from 1inch
+    const quote = await oneInchService.getSwapQuote(srcToken, dstToken, amount, parseInt(chainId), { from });
+    
+    // Execute swap using 1inch API
+    const swapData = {
+      ...quote,
+      from: from || '0x0000000000000000000000000000000000000000',
+      slippage: 0.5 // 0.5% slippage
+    };
+    
+    const result = await oneInchService.executeSwap(swapData, parseInt(chainId));
+    
+    res.json({
+      success: true,
+      message: 'Cross-chain swap executed successfully',
+      data: {
+        swapId: result.txHash,
+        loanId,
+        srcToken,
+        dstToken,
+        srcAmount: amount,
+        dstAmount: quote.toTokenAmount,
+        slippage: 0.005,
+        timestamp: new Date().toISOString(),
+        transactionHash: result.txHash
+      }
+    });
+  } catch (error) {
+    console.error('Error executing swap:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to execute swap',
+      error: error.message
+    });
+  }
 });
 
 /**
@@ -250,30 +278,32 @@ router.get('/swap/:swapId', (req, res) => {
  * @route GET /api/v1/prime/quote
  * @desc Get swap quote from 1inch Fusion+
  */
-router.get('/quote', (req, res) => {
-  const { srcToken, dstToken, amount } = req.query;
-  
-  // Mock quote response
-  const quote = {
-    srcToken,
-    dstToken,
-    srcAmount: amount,
-    dstAmount: (amount * 2000).toString(), // Mock rate
-    gasEstimate: '200000',
-    route: [
-      {
-        protocol: '1inch',
-        fromToken: srcToken,
-        toToken: dstToken,
-        amount: amount
-      }
-    ]
-  };
-  
-  res.json({
-    success: true,
-    data: quote
-  });
+router.get('/quote', async (req, res) => {
+  try {
+    const { srcToken, dstToken, amount, chainId = 1 } = req.query;
+    
+    if (!srcToken || !dstToken || !amount) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required parameters: srcToken, dstToken, amount'
+      });
+    }
+
+    // Get real quote from 1inch API
+    const quote = await oneInchService.getSwapQuote(srcToken, dstToken, amount, parseInt(chainId));
+    
+    res.json({
+      success: true,
+      data: quote
+    });
+  } catch (error) {
+    console.error('Error getting swap quote:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get swap quote',
+      error: error.message
+    });
+  }
 });
 
 /**
