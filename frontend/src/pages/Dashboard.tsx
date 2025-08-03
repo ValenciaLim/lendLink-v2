@@ -13,7 +13,6 @@ import {
 } from '@heroicons/react/24/outline'
 import { useLendLink } from '../hooks/useLendLink'
 import { useLendLinkPrime } from '../hooks/useLendLinkPrime'
-import { use1inch } from '../hooks/use1inch'
 import { usePythPrices, formatPriceWithConfidence, getPriceStatus } from '../hooks/usePythPrices'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 
@@ -21,6 +20,7 @@ export default function Dashboard() {
     const { isConnected } = useAccount()
     const { userPosition, totalTVL, totalDebt, protocolStats } = useLendLink()
     const { crossChainLoans, supportedChains, isLoading: isLoadingPrime } = useLendLinkPrime()
+    const { data: prices, isLoading: isLoadingPrices } = usePythPrices()
 
     // Get cross-chain stats
     const { data: crossChainStats, isLoading: isLoadingCrossChainStats } = useQuery({
@@ -41,7 +41,7 @@ export default function Dashboard() {
         refetchInterval: 10000 // Refetch every 10 seconds
     })
 
-    if (isLoadingPrime || isLoadingCrossChainStats) {
+    if (isLoadingPrime || isLoadingCrossChainStats || isLoadingPrices) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">

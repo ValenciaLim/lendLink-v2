@@ -107,18 +107,18 @@ router.post('/execute-cross-chain-swap', async (req, res) => {
     
     // Store stats globally (in production, this would be in a database)
     global.crossChainStats = crossChainStats;
-    
-    res.json({
-      success: true,
+  
+  res.json({
+    success: true,
       message: 'Cross-chain swap executed successfully for lending',
       data: {
         swapId: result.txHash,
         loanId,
-        srcToken,
-        dstToken,
+    srcToken,
+    dstToken,
         srcChainId: parseInt(srcChainId),
         dstChainId: parseInt(dstChainId),
-        srcAmount: amount,
+    srcAmount: amount,
         dstAmount: quote.toTokenAmount,
         slippage: 0.005,
         purpose: 'cross-chain-lending',

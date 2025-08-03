@@ -55,10 +55,10 @@ export default function Lending() {
     // Calculate borrow amount based on collateral
     const calculateBorrowAmount = (collateralAmount: string, collateralToken: string, borrowToken: string) => {
         if (!collateralAmount || parseFloat(collateralAmount) <= 0) return '0'
-        
+
         const collateralValue = parseFloat(collateralAmount)
         let borrowAmount = 0
-        
+
         // LTV ratios (Loan-to-Value)
         const ltvRatios: { [key: string]: number } = {
             'stETH': 0.75, // 75% LTV for stETH
@@ -66,7 +66,7 @@ export default function Lending() {
             'USDC': 0.85,  // 85% LTV for USDC
             'USDT': 0.85   // 85% LTV for USDT
         }
-        
+
         // Token prices (in USD) - in production, these would come from price feeds
         const tokenPrices: { [key: string]: number } = {
             'stETH': 2000, // $2000 per stETH
@@ -74,19 +74,19 @@ export default function Lending() {
             'USDC': 1,     // $1 per USDC
             'USDT': 1      // $1 per USDT
         }
-        
+
         const ltv = ltvRatios[collateralToken] || 0.75
         const collateralPrice = tokenPrices[collateralToken] || 1
         const borrowPrice = tokenPrices[borrowToken] || 1
-        
+
         // Calculate maximum borrow amount
         const collateralValueUSD = collateralValue * collateralPrice
         const maxBorrowValueUSD = collateralValueUSD * ltv
         borrowAmount = maxBorrowValueUSD / borrowPrice
-        
+
         return borrowAmount.toFixed(6)
     }
-    
+
     const calculatedBorrowAmount = calculateBorrowAmount(collateralAmount, selectedCollateral, selectedBorrow)
 
     // Swap state
@@ -191,7 +191,7 @@ export default function Lending() {
             alert('Please enter a valid collateral amount')
             return
         }
-        
+
         if (parseFloat(calculatedBorrowAmount) <= 0) {
             alert('Please enter a valid collateral amount to calculate borrow amount')
             return
