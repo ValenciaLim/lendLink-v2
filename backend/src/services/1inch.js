@@ -277,19 +277,20 @@ class OneInchService {
   async getCrossChainSwapQuote(srcToken, dstToken, amount, srcChainId, dstChainId) {
     try {
       const params = {
-        src: srcToken,
-        dst: dstToken,
+        srcChain: srcChainId,
+        dstChain: dstChainId,
+        srcTokenAddress: srcToken,
+        dstTokenAddress: dstToken,
         amount: amount,
-        srcChainId: srcChainId,
-        dstChainId: dstChainId,
-        receiver: '0x0000000000000000000000000000000000000000', // Default receiver
+        walletAddress: '0x0000000000000000000000000000000000000000',
         enableEstimate: true,
-        permit: '',
-        burnToken: false
+        fee: 0,
+        isPermit2: '',
+        permit: ''
       };
 
       const response = await axios.get(
-        `${this.baseURL}/fusion/v1.0/quote/receive`,
+        `${this.baseURL}/fusion-plus/quoter/v1.0/quote/receive`,
         { headers: this.headers, params }
       );
 
@@ -331,15 +332,25 @@ class OneInchService {
     try {
       // Prepare the submit data according to 1inch Fusion+ API
       const submitData = {
+        order: {
+          salt: swapData.order?.salt || '0x' + Math.random().toString(16).substr(2, 64),
+          makerAsset: swapData.order?.makerAsset || swapData.srcToken,
+          takerAsset: swapData.order?.takerAsset || swapData.dstToken,
+          maker: swapData.order?.maker || '0x0000000000000000000000000000000000000000',
+          receiver: swapData.order?.receiver || '0x0000000000000000000000000000000000000000',
+          makingAmount: swapData.order?.makingAmount || swapData.srcAmount,
+          takingAmount: swapData.order?.takingAmount || swapData.dstAmount,
+          makerTraits: swapData.order?.makerTraits || '0x',
+          srcChainId: swapData.order?.srcChainId || swapData.srcChainId,
+          extension: swapData.order?.extension || '0x'
+        },
+        signature: swapData.signature || '0x',
         quoteId: swapData.quoteId,
-        order: swapData.order,
-        signature: swapData.signature || '',
-        permit: swapData.permit || '',
-        receiver: swapData.receiver || '0x0000000000000000000000000000000000000000'
+        secretHashes: swapData.secretHashes || []
       };
 
       const response = await axios.post(
-        `${this.baseURL}/fusion/v1.0/submit`,
+        `${this.baseURL}/fusion-plus/relayer/v1.0/submit`,
         submitData,
         { headers: this.headers }
       );
