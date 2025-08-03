@@ -2,64 +2,49 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const dotenv = require('dotenv');
-
-// Load environment variables
-dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3002;
 
 // Middleware
 app.use(helmet());
 app.use(cors());
 app.use(morgan('combined'));
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
 // Routes
-app.get('/', (req, res) => {
-  res.json({
-    message: 'LendLink API Server',
-    version: '1.0.0',
-    status: 'running'
-  });
-});
+app.use('/api/v1/lending', require('./routes/lending'));
+app.use('/api/v1/prime', require('./routes/prime'));
 
-// Health check endpoint
+// Health check
 app.get('/health', (req, res) => {
-  res.json({
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime()
-  });
+  res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-// API Routes
-app.use('/api/v1', require('./routes'));
-
-// Error handling middleware
+// Error handling
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({
-    error: 'Something went wrong!',
-    message: err.message
+  res.status(500).json({ 
+    success: false, 
+    message: 'Internal server error',
+    error: process.env.NODE_ENV === 'development' ? err.message : undefined
   });
 });
 
 // 404 handler
 app.use('*', (req, res) => {
-  res.status(404).json({
-    error: 'Route not found',
-    path: req.originalUrl
+  res.status(404).json({ 
+    success: false, 
+    message: 'Route not found' 
   });
 });
 
-// Start server
+const PORT = process.env.PORT || 3002;
+
 app.listen(PORT, () => {
-  console.log(`🚀 LendLink API Server running on port ${PORT}`);
+  console.log(`🚀 LendLink API server running on port ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
-  console.log(`🔗 API Base URL: http://localhost:${PORT}/api/v1`);
+  console.log(`🔗 Lending API: http://localhost:${PORT}/api/v1/lending`);
+  console.log(`🌐 Prime API: http://localhost:${PORT}/api/v1/prime`);
 });
 
 module.exports = app; 

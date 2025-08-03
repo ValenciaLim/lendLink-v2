@@ -7,12 +7,14 @@ import {
     HomeIcon,
     BanknotesIcon,
     ChartBarIcon,
-    Cog6ToothIcon
+    Cog6ToothIcon,
+    GlobeAltIcon
 } from '@heroicons/react/24/outline'
 
 import Layout from './components/Layout'
 import Dashboard from './pages/Dashboard'
 import Lending from './pages/Lending'
+import Prime from './pages/Prime'
 import Analytics from './pages/Analytics'
 import Settings from './pages/Settings'
 import { useLendLink } from './hooks/useLendLink'
@@ -35,6 +37,7 @@ function App() {
     const navigation = [
         { name: 'Dashboard', href: '/', icon: HomeIcon },
         { name: 'Lending', href: '/lending', icon: BanknotesIcon },
+        { name: 'Prime', href: '/prime', icon: GlobeAltIcon },
         { name: 'Analytics', href: '/analytics', icon: ChartBarIcon },
         { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
     ]
@@ -46,6 +49,7 @@ function App() {
                     <Routes>
                         <Route path="/" element={<Dashboard />} />
                         <Route path="/lending" element={<Lending />} />
+                        <Route path="/prime" element={<Prime />} />
                         <Route path="/analytics" element={<Analytics />} />
                         <Route path="/settings" element={<Settings />} />
                     </Routes>
