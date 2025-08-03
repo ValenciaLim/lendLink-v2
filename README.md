@@ -25,6 +25,8 @@
 - **Data APIs**: Real-time price feeds, wallet balances, token metadata
 - **Web3 APIs**: Transaction status, gas prices, blockchain data
 - **Comprehensive Coverage**: All major 1inch APIs integrated
+- **Auto-Interest Management**: LST yield automatically repays loan interest
+- **Cross-Chain Swaps**: Seamless token bridging with 1inch Fusion+
 
 ## 🏗️ Architecture
 
@@ -64,6 +66,48 @@
 - **Mock1inchRouter.sol**: Mock 1inch router for testing
 - **MockBridge.sol**: Mock cross-chain bridge for testing
 - **Interfaces**: I1inchRouter.sol, IBridge.sol for type safety
+
+## 🔧 API Integration
+
+### 1inch APIs Implemented
+The project integrates **18 real 1inch APIs** across multiple categories:
+
+#### **Swap APIs (6 APIs)**
+- `getSwapQuote()` - Get swap quotes with best routes
+- `executeSwap()` - Execute swaps with MEV protection
+- `getCrossChainSwapQuote()` - Cross-chain swap quotes
+- `executeCrossChainSwap()` - Execute cross-chain swaps
+- `getLimitOrderQuote()` - Limit order quotes
+- `createLimitOrder()` - Create limit orders
+
+#### **Data APIs (4 APIs)**
+- `getTokenPrice()` - Real-time token prices
+- `getWalletBalances()` - Wallet token balances
+- `getTokenMetadata()` - Token information
+- `getSupportedTokens()` - Available tokens per chain
+
+#### **Web3 APIs (3 APIs)**
+- `getTransactionStatus()` - Transaction status tracking
+- `getGasPrice()` - Current gas prices
+- `getBlockInfo()` - Blockchain data
+
+#### **Utility APIs (5 APIs)**
+- `getSupportedChains()` - Available blockchain networks
+- `getProtocols()` - DEX protocols information
+- `getLiquiditySources()` - Liquidity sources
+- `validateTransaction()` - Transaction validation
+- `getTokenList()` - Token lists per chain
+
+### Backend API Endpoints
+```
+/api/v1/lending/*     - Core lending operations
+/api/v1/1inch/*       - 1inch API proxy
+/api/v1/prime/*       - Cross-chain lending
+/api/v1/lst/*         - LST yield management
+/api/v1/interest/*    - Interest management
+/api/v1/scheduler/*   - Auto-repayment scheduling
+/api/v1/analytics/*   - Protocol analytics
+```
 
 ## 🚀 Installation & Setup
 

@@ -377,7 +377,7 @@ export default function Lending() {
             {activeTab === 'repay' && (
                 <div className="bg-white rounded-lg shadow p-6">
                     <h2 className="text-lg font-semibold text-gray-900 mb-4">Repay Debt</h2>
-                    
+
                     {/* Repay Options Tabs */}
                     <div className="mb-6">
                         <nav className="flex space-x-8">
@@ -467,10 +467,10 @@ export default function Lending() {
                                     alert('Please select LST token and enter frequency')
                                     return
                                 }
-                                
+
                                 const userAddress = '0x1234567890123456789012345678901234567890'
                                 const loanId = '0x1234567890123456789012345678901234567890123456789012345678901234'
-                                
+
                                 try {
                                     const result = await setupAutoRepay(userAddress, loanId, selectedToken, amount)
                                     if (result.success) {
@@ -537,7 +537,7 @@ export default function Lending() {
                 </div>
             )}
 
-            
+
 
             {activeTab === 'cross-chain' && (
                 <div className="space-y-6">
