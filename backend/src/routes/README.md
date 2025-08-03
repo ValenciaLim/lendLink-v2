@@ -26,11 +26,8 @@ This document outlines the route structure and purpose of each endpoint in the L
 - **Purpose**: Cross-chain lending functionality with 1inch integration
 - **Key Endpoints**:
   - `GET /overview` - Prime protocol overview
-  - `GET /cross-chain-quote` - Get cross-chain swap quote for lending
+  - `GET /supported-tokens` - Get supported tokens
   - `POST /execute-cross-chain-swap` - Execute cross-chain swap for lending
-  - `POST /initiate-loan` - Initiate cross-chain loan
-  - `GET /loan/:loanId` - Get loan details
-  - `GET /user/:address/loans` - Get user's cross-chain loans
 
 ### `/api/v1/1inch` - General 1inch API Integration
 - **Purpose**: Comprehensive 1inch API functionality for general use
@@ -39,15 +36,17 @@ This document outlines the route structure and purpose of each endpoint in the L
   - `POST /swap` - Execute general swap
   - `GET /price/:tokenAddress` - Get token price
   - `GET /balances/:walletAddress` - Get wallet balances
+  - `GET /token/metadata/:tokenAddress` - Get token metadata
+  - `GET /tokens` - Get supported tokens
   - `GET /cross-chain/quote` - Get cross-chain quote
   - `POST /cross-chain/swap` - Execute cross-chain swap
+  - `GET /transaction/:txHash` - Get transaction status
+  - `GET /gas-price` - Get gas price
+  - `GET /chains` - Get supported chains
 
 ## Route Differentiation
 
 ### Quote Routes
-- **`/prime/cross-chain-quote`**: Specifically for cross-chain lending scenarios
-  - Requires: `srcChainId`, `dstChainId`, `loanId` (optional)
-  - Returns: Quote with lending context
 - **`/1inch/quote`**: General swap quotes
   - Requires: `srcToken`, `dstToken`, `amount`, `chainId`
   - Returns: Standard swap quote

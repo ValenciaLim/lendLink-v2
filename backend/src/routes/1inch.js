@@ -72,67 +72,7 @@ router.post('/swap', async (req, res) => {
   }
 });
 
-/**
- * @route GET /api/v1/1inch/limit-order/quote
- * @desc Get limit order quote
- */
-router.get('/limit-order/quote', async (req, res) => {
-  try {
-    const { srcToken, dstToken, amount, chainId = 1 } = req.query;
 
-    if (!srcToken || !dstToken || !amount) {
-      return res.status(400).json({
-        success: false,
-        message: 'Missing required parameters: srcToken, dstToken, amount'
-      });
-    }
-
-    const quote = await oneInchService.getLimitOrderQuote(srcToken, dstToken, amount, parseInt(chainId));
-
-    res.json({
-      success: true,
-      data: quote
-    });
-  } catch (error) {
-    console.error('Error getting limit order quote:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to get limit order quote',
-      error: error.message
-    });
-  }
-});
-
-/**
- * @route POST /api/v1/1inch/limit-order
- * @desc Create limit order
- */
-router.post('/limit-order', async (req, res) => {
-  try {
-    const { orderData, chainId = 1 } = req.body;
-
-    if (!orderData) {
-      return res.status(400).json({
-        success: false,
-        message: 'Missing required parameter: orderData'
-      });
-    }
-
-    const result = await oneInchService.createLimitOrder(orderData, parseInt(chainId));
-
-    res.json({
-      success: true,
-      data: result
-    });
-  } catch (error) {
-    console.error('Error creating limit order:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to create limit order',
-      error: error.message
-    });
-  }
-});
 
 // ===== DATA ROUTES =====
 
@@ -286,30 +226,7 @@ router.get('/transaction/:txHash', async (req, res) => {
   }
 });
 
-/**
- * @route GET /api/v1/1inch/block/:blockHash
- * @desc Get block information
- */
-router.get('/block/:blockHash', async (req, res) => {
-  try {
-    const { blockHash } = req.params;
-    const { chainId = 1 } = req.query;
 
-    const blockInfo = await oneInchService.getBlockInfo(blockHash, parseInt(chainId));
-
-    res.json({
-      success: true,
-      data: blockInfo
-    });
-  } catch (error) {
-    console.error('Error getting block info:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to get block info',
-      error: error.message
-    });
-  }
-});
 
 /**
  * @route GET /api/v1/1inch/gas-price
@@ -429,83 +346,6 @@ router.get('/chains', async (req, res) => {
   }
 });
 
-/**
- * @route GET /api/v1/1inch/protocols
- * @desc Get protocol information
- */
-router.get('/protocols', async (req, res) => {
-  try {
-    const { chainId = 1 } = req.query;
 
-    const protocols = await oneInchService.getProtocols(parseInt(chainId));
-
-    res.json({
-      success: true,
-      data: protocols
-    });
-  } catch (error) {
-    console.error('Error getting protocols:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to get protocols',
-      error: error.message
-    });
-  }
-});
-
-/**
- * @route GET /api/v1/1inch/liquidity-sources
- * @desc Get liquidity sources
- */
-router.get('/liquidity-sources', async (req, res) => {
-  try {
-    const { chainId = 1 } = req.query;
-
-    const liquiditySources = await oneInchService.getLiquiditySources(parseInt(chainId));
-
-    res.json({
-      success: true,
-      data: liquiditySources
-    });
-  } catch (error) {
-    console.error('Error getting liquidity sources:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to get liquidity sources',
-      error: error.message
-    });
-  }
-});
-
-/**
- * @route POST /api/v1/1inch/validate
- * @desc Validate transaction before execution
- */
-router.post('/validate', async (req, res) => {
-  try {
-    const { txData, chainId = 1 } = req.body;
-
-    if (!txData) {
-      return res.status(400).json({
-        success: false,
-        message: 'Missing required parameter: txData'
-      });
-    }
-
-    const validation = await oneInchService.validateTransaction(txData, parseInt(chainId));
-
-    res.json({
-      success: true,
-      data: validation
-    });
-  } catch (error) {
-    console.error('Error validating transaction:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to validate transaction',
-      error: error.message
-    });
-  }
-});
 
 module.exports = router; 

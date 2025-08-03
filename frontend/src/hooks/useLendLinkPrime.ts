@@ -2,6 +2,7 @@ import { useAccount, useContractRead, useContractWrite, usePrepareContractWrite 
 import { useQuery } from '@tanstack/react-query'
 import { ethers } from 'ethers'
 import axios from 'axios'
+import { use1inch } from './use1inch'
 
 // Contract addresses (these would be deployed addresses)
 const LENDLINK_PRIME_ADDRESS = '0x0000000000000000000000000000000000000000' // Placeholder for deployed LendLinkPrime address
@@ -112,6 +113,7 @@ const mockCrossChainLoans: CrossChainLoan[] = [
 
 export function useLendLinkPrime() {
     const { address, isConnected } = useAccount()
+    const { getCrossChainSwapQuote, executeCrossChainSwap, getSupportedChains } = use1inch()
 
     // For now, use mock data instead of contract reads
     const isLoading = false
@@ -157,12 +159,28 @@ export function useLendLinkPrime() {
         refetchInterval: 60000, // Refetch every minute
     })
 
+    // Get real supported chains from 1inch
+    const { data: realSupportedChains, isLoading: isLoadingChains } = useQuery({
+        queryKey: ['1inchSupportedChains'],
+        queryFn: async () => {
+            try {
+                return await getSupportedChains()
+            } catch (error) {
+                console.warn('Failed to fetch 1inch supported chains, using fallback:', error)
+                return SUPPORTED_CHAINS
+            }
+        },
+        refetchInterval: 300000, // Refetch every 5 minutes
+    })
+
     return {
         crossChainLoans,
         protocolStats,
         supportedTokens,
-        supportedChains: SUPPORTED_CHAINS,
-        isLoading: isLoading || isLoadingStats || isLoadingTokens
+        supportedChains: realSupportedChains || SUPPORTED_CHAINS,
+        getCrossChainSwapQuote,
+        executeCrossChainSwap,
+        isLoading: isLoading || isLoadingStats || isLoadingTokens || isLoadingChains
     }
 }
 

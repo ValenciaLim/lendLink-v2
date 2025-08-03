@@ -11,6 +11,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { useLendLink, formatUSD, formatTokenAmount, getHealthFactorStatus } from '../hooks/useLendLink'
 import { useLendLinkPrime } from '../hooks/useLendLinkPrime'
+import { use1inch } from '../hooks/use1inch'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 
 export default function Lending() {
@@ -25,6 +26,18 @@ export default function Lending() {
     // Prime functionality
     const { crossChainLoans, protocolStats: primeStats, supportedChains, isLoading: isLoadingPrime } = useLendLinkPrime()
 
+    // 1inch functionality
+    const { 
+        getSwapQuote, 
+        executeSwap, 
+        getCrossChainSwapQuote, 
+        executeCrossChainSwap,
+        getTokenPrice,
+        loading: isLoading1inch,
+        error: error1inch,
+        clearError: clearError1inch
+    } = use1inch()
+
     const [activeTab, setActiveTab] = useState<'deposit' | 'borrow' | 'repay' | 'cross-chain'>('deposit')
     const [selectedToken, setSelectedToken] = useState('')
     const [amount, setAmount] = useState('')
@@ -36,6 +49,10 @@ export default function Lending() {
     const [selectedBorrow, setSelectedBorrow] = useState('USDC')
     const [collateralAmount, setCollateralAmount] = useState('')
     const [borrowAmount, setBorrowAmount] = useState('')
+
+    // Swap state
+    const [swapQuote, setSwapQuote] = useState<any>(null)
+    const [isGettingQuote, setIsGettingQuote] = useState(false)
 
     // if (!isConnected) {
     //     return (
@@ -82,17 +99,69 @@ export default function Lending() {
         console.log(`${activeTab} ${amount} ${selectedToken}`)
     }
 
-    const handleCrossChainSubmit = (e: React.FormEvent) => {
+    const handleCrossChainSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        // Handle cross-chain loan initiation
-        console.log('Cross-chain loan:', {
-            sourceChain: selectedSourceChain,
-            destChain: selectedDestChain,
-            collateral: selectedCollateral,
-            borrow: selectedBorrow,
-            collateralAmount,
-            borrowAmount
-        })
+        
+        if (!collateralAmount || !borrowAmount) {
+            alert('Please enter both collateral and borrow amounts')
+            return
+        }
+
+        try {
+            // Get cross-chain swap quote
+            const quote = await getCrossChainSwapQuote(
+                selectedCollateral,
+                selectedBorrow,
+                collateralAmount,
+                selectedSourceChain,
+                selectedDestChain
+            )
+
+            if (quote) {
+                // Execute cross-chain swap
+                const result = await executeCrossChainSwap({
+                    ...quote,
+                    from: '0x0000000000000000000000000000000000000000', // Mock address
+                    slippage: 0.5
+                })
+
+                if (result?.success) {
+                    alert(`Cross-chain swap executed! TX: ${result.txHash}`)
+                    // Reset form
+                    setCollateralAmount('')
+                    setBorrowAmount('')
+                } else {
+                    alert('Failed to execute cross-chain swap')
+                }
+            } else {
+                alert('Failed to get swap quote')
+            }
+        } catch (error) {
+            console.error('Cross-chain swap error:', error)
+            alert('Error executing cross-chain swap')
+        }
+    }
+
+    const handleGetQuote = async () => {
+        if (!selectedToken || !amount) {
+            alert('Please select a token and enter amount')
+            return
+        }
+
+        setIsGettingQuote(true)
+        try {
+            const quote = await getSwapQuote(
+                selectedToken,
+                'USDC', // Default destination
+                amount,
+                1 // Default chain
+            )
+            setSwapQuote(quote)
+        } catch (error) {
+            console.error('Quote error:', error)
+        } finally {
+            setIsGettingQuote(false)
+        }
     }
 
     return (

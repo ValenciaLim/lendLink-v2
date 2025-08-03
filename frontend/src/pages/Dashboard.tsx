@@ -11,6 +11,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { useLendLink } from '../hooks/useLendLink'
 import { useLendLinkPrime } from '../hooks/useLendLinkPrime'
+import { use1inch } from '../hooks/use1inch'
 import { usePythPrices, formatPriceWithConfidence, getPriceStatus } from '../hooks/usePythPrices'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 
@@ -18,6 +19,7 @@ export default function Dashboard() {
     const { isConnected } = useAccount()
     const { userPosition, totalTVL, totalDebt, isLoading } = useLendLink()
     const { crossChainLoans, protocolStats: primeStats, supportedChains, isLoading: isLoadingPrime } = useLendLinkPrime()
+    const { getTokenPrice, getSupportedChains, loading: isLoading1inch } = use1inch()
     const { data: prices, isLoading: isLoadingPrices } = usePythPrices()
 
     if (isLoading || isLoadingPrices || isLoadingPrime) {
