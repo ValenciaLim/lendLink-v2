@@ -70,15 +70,13 @@
 ## 🔧 API Integration
 
 ### 1inch APIs Implemented
-The project integrates **18 real 1inch APIs** across multiple categories:
+The project integrates **12 real 1inch APIs** across multiple categories:
 
-#### **Swap APIs (6 APIs)**
+#### **Swap APIs (4 APIs)**
 - `getSwapQuote()` - Get swap quotes with best routes
 - `executeSwap()` - Execute swaps with MEV protection
 - `getCrossChainSwapQuote()` - Cross-chain swap quotes
 - `executeCrossChainSwap()` - Execute cross-chain swaps
-- `getLimitOrderQuote()` - Limit order quotes
-- `createLimitOrder()` - Create limit orders
 
 #### **Data APIs (4 APIs)**
 - `getTokenPrice()` - Real-time token prices
@@ -86,16 +84,12 @@ The project integrates **18 real 1inch APIs** across multiple categories:
 - `getTokenMetadata()` - Token information
 - `getSupportedTokens()` - Available tokens per chain
 
-#### **Web3 APIs (3 APIs)**
+#### **Web3 APIs (2 APIs)**
 - `getTransactionStatus()` - Transaction status tracking
 - `getGasPrice()` - Current gas prices
-- `getBlockInfo()` - Blockchain data
 
-#### **Utility APIs (5 APIs)**
+#### **Utility APIs (2 APIs)**
 - `getSupportedChains()` - Available blockchain networks
-- `getProtocols()` - DEX protocols information
-- `getLiquiditySources()` - Liquidity sources
-- `validateTransaction()` - Transaction validation
 - `getTokenList()` - Token lists per chain
 
 ### Backend API Endpoints
