@@ -222,20 +222,8 @@ export default function Lending() {
                 if (result?.success) {
                     alert(`Cross-chain swap executed! TX: ${result.txHash}`)
 
-                    // Update cross-chain stats via API
-                    try {
-                        await axios.post('http://localhost:3002/api/v1/prime/update-stats', {
-                            totalBridges: undefined, // Will increment by 1
-                            activeLoans: undefined, // Will increment by 1
-                            successRate: 98.5
-                        })
-
-                        // Show success message with stats update
-                        alert('Cross-chain loan initiated successfully! Stats have been updated.')
-                    } catch (statsError) {
-                        console.warn('Failed to update cross-chain stats:', statsError)
-                        alert('Cross-chain loan initiated, but stats update failed. Please refresh the dashboard.')
-                    }
+                    // Show success message - stats are automatically updated by the backend
+                    alert('Cross-chain loan initiated successfully! Active loans count has been incremented.')
 
                     // Reset form
                     setCollateralAmount('')
