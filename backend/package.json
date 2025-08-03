@@ -1,20 +1,20 @@
 {
-    "name": "lendlink-backend",
-    "version": "1.0.0",
-    "description": "LendLink Backend - API and Subgraph",
-    "main": "src/index.js",
-    "scripts": {
-        "dev": "nodemon src/index.js",
-        "start": "node src/index.js",
-        "build": "tsc",
-        "test": "jest",
-        "lint": "eslint .",
-        "lint:fix": "eslint . --fix",
-        "subgraph:codegen": "cd subgraph && npm run codegen",
-        "subgraph:build": "cd subgraph && npm run build",
-        "subgraph:deploy": "cd subgraph && npm run deploy"
-    },
-      "dependencies": {
+  "name": "lendlink-backend",
+  "version": "1.0.0",
+  "description": "LendLink Backend - API and Subgraph",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js",
+    "build": "tsc",
+    "test": "jest",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "subgraph:codegen": "cd subgraph && npm run codegen",
+    "subgraph:build": "cd subgraph && npm run build",
+    "subgraph:deploy": "cd subgraph && npm run deploy"
+  },
+  "dependencies": {
     "express": "^4.18.0",
     "cors": "^2.8.5",
     "helmet": "^7.1.0",
@@ -35,16 +35,16 @@
     "compression": "^1.7.4",
     "rate-limiter-flexible": "^3.0.0"
   },
-    "devDependencies": {
-        "@types/express": "^4.17.0",
-        "@types/cors": "^2.8.0",
-        "@types/morgan": "^1.9.0",
-        "@types/node": "^20.0.0",
-        "@types/compression": "^1.7.0",
-        "nodemon": "^3.0.0",
-        "eslint": "^8.50.0",
-        "jest": "^29.6.0",
-        "supertest": "^6.3.0",
-        "typescript": "^5.2.0"
-    }
+  "devDependencies": {
+    "@types/express": "^4.17.0",
+    "@types/cors": "^2.8.0",
+    "@types/morgan": "^1.9.0",
+    "@types/node": "^20.0.0",
+    "@types/compression": "^1.7.0",
+    "nodemon": "^3.0.0",
+    "eslint": "^8.50.0",
+    "jest": "^29.6.0",
+    "supertest": "^6.3.0",
+    "typescript": "^5.2.0"
+  }
 }

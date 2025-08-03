@@ -5,9 +5,12 @@ import {
     ArrowUpIcon,
     ArrowDownIcon,
     ExclamationTriangleIcon,
-    ShieldCheckIcon
+    ShieldCheckIcon,
+    GlobeAltIcon,
+    ArrowPathIcon
 } from '@heroicons/react/24/outline'
 import { useLendLink, formatUSD, formatTokenAmount, getHealthFactorStatus } from '../hooks/useLendLink'
+import { useLendLinkPrime } from '../hooks/useLendLinkPrime'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 
 export default function Lending() {
@@ -19,9 +22,20 @@ export default function Lending() {
         isLoading
     } = useLendLink()
 
-    const [activeTab, setActiveTab] = useState<'deposit' | 'borrow' | 'repay'>('deposit')
+    // Prime functionality
+    const { crossChainLoans, protocolStats: primeStats, supportedChains, isLoading: isLoadingPrime } = useLendLinkPrime()
+
+    const [activeTab, setActiveTab] = useState<'deposit' | 'borrow' | 'repay' | 'cross-chain'>('deposit')
     const [selectedToken, setSelectedToken] = useState('')
     const [amount, setAmount] = useState('')
+
+    // Cross-chain form state
+    const [selectedSourceChain, setSelectedSourceChain] = useState(1)
+    const [selectedDestChain, setSelectedDestChain] = useState(128123)
+    const [selectedCollateral, setSelectedCollateral] = useState('stETH')
+    const [selectedBorrow, setSelectedBorrow] = useState('USDC')
+    const [collateralAmount, setCollateralAmount] = useState('')
+    const [borrowAmount, setBorrowAmount] = useState('')
 
     // if (!isConnected) {
     //     return (
@@ -42,7 +56,7 @@ export default function Lending() {
     //     )
     // }
 
-    if (isLoading) {
+    if (isLoading || isLoadingPrime) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
@@ -66,6 +80,19 @@ export default function Lending() {
         e.preventDefault()
         // Handle transaction submission
         console.log(`${activeTab} ${amount} ${selectedToken}`)
+    }
+
+    const handleCrossChainSubmit = (e: React.FormEvent) => {
+        e.preventDefault()
+        // Handle cross-chain loan initiation
+        console.log('Cross-chain loan:', {
+            sourceChain: selectedSourceChain,
+            destChain: selectedDestChain,
+            collateral: selectedCollateral,
+            borrow: selectedBorrow,
+            collateralAmount,
+            borrowAmount
+        })
     }
 
     return (
@@ -100,210 +127,357 @@ export default function Lending() {
                 </div>
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Main Lending Interface */}
-                <div className="lg:col-span-2">
-                    <div className="card">
-                        <div className="card-header">
-                            <div className="flex space-x-4">
-                                <button
-                                    onClick={() => setActiveTab('deposit')}
-                                    className={`px-3 py-2 text-sm font-medium rounded-md ${activeTab === 'deposit'
-                                            ? 'bg-primary-100 text-primary-700'
-                                            : 'text-gray-500 hover:text-gray-700'
-                                        }`}
-                                >
-                                    <ArrowDownIcon className="h-4 w-4 inline mr-1" />
-                                    Deposit Collateral
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('borrow')}
-                                    className={`px-3 py-2 text-sm font-medium rounded-md ${activeTab === 'borrow'
-                                            ? 'bg-primary-100 text-primary-700'
-                                            : 'text-gray-500 hover:text-gray-700'
-                                        }`}
-                                >
-                                    <ArrowUpIcon className="h-4 w-4 inline mr-1" />
-                                    Borrow Assets
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('repay')}
-                                    className={`px-3 py-2 text-sm font-medium rounded-md ${activeTab === 'repay'
-                                            ? 'bg-primary-100 text-primary-700'
-                                            : 'text-gray-500 hover:text-gray-700'
-                                        }`}
-                                >
-                                    <BanknotesIcon className="h-4 w-4 inline mr-1" />
-                                    Repay Debt
-                                </button>
+            {/* Navigation Tabs */}
+            <div className="border-b border-gray-200">
+                <nav className="-mb-px flex space-x-8">
+                    <button
+                        onClick={() => setActiveTab('deposit')}
+                        className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'deposit'
+                            ? 'border-primary-500 text-primary-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                            }`}
+                    >
+                        <ArrowUpIcon className="h-4 w-4 inline mr-2" />
+                        Deposit
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('borrow')}
+                        className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'borrow'
+                            ? 'border-primary-500 text-primary-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                            }`}
+                    >
+                        <ArrowDownIcon className="h-4 w-4 inline mr-2" />
+                        Borrow
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('repay')}
+                        className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'repay'
+                            ? 'border-primary-500 text-primary-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                            }`}
+                    >
+                        <BanknotesIcon className="h-4 w-4 inline mr-2" />
+                        Repay
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('cross-chain')}
+                        className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'cross-chain'
+                            ? 'border-primary-500 text-primary-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                            }`}
+                    >
+                        <GlobeAltIcon className="h-4 w-4 inline mr-2" />
+                        Cross-Chain
+                    </button>
+                </nav>
+            </div>
+
+            {/* Tab Content */}
+            {activeTab === 'deposit' && (
+                <div className="bg-white rounded-lg shadow p-6">
+                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Deposit Collateral</h2>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Select Token
+                            </label>
+                            <select
+                                value={selectedToken}
+                                onChange={(e) => setSelectedToken(e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            >
+                                <option value="">Select a token</option>
+                                {supportedTokens.filter(token => ['stETH', 'rETH'].includes(token.symbol)).map(token => (
+                                    <option key={token.symbol} value={token.symbol}>
+                                        {token.symbol} - {token.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Amount
+                            </label>
+                            <input
+                                type="number"
+                                value={amount}
+                                onChange={(e) => setAmount(e.target.value)}
+                                placeholder="0.0"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            />
+                        </div>
+                        <button
+                            type="submit"
+                            className="w-full bg-primary-600 text-white py-2 px-4 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        >
+                            Deposit Collateral
+                        </button>
+                    </form>
+                </div>
+            )}
+
+            {activeTab === 'borrow' && (
+                <div className="bg-white rounded-lg shadow p-6">
+                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Borrow Assets</h2>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Select Token
+                            </label>
+                            <select
+                                value={selectedToken}
+                                onChange={(e) => setSelectedToken(e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            >
+                                <option value="">Select a token</option>
+                                {supportedTokens.filter(token => ['USDC'].includes(token.symbol)).map(token => (
+                                    <option key={token.symbol} value={token.symbol}>
+                                        {token.symbol} - {token.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Amount
+                            </label>
+                            <input
+                                type="number"
+                                value={amount}
+                                onChange={(e) => setAmount(e.target.value)}
+                                placeholder="0.0"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            />
+                        </div>
+                        <button
+                            type="submit"
+                            className="w-full bg-primary-600 text-white py-2 px-4 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        >
+                            Borrow Assets
+                        </button>
+                    </form>
+                </div>
+            )}
+
+            {activeTab === 'repay' && (
+                <div className="bg-white rounded-lg shadow p-6">
+                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Repay Debt</h2>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Select Token
+                            </label>
+                            <select
+                                value={selectedToken}
+                                onChange={(e) => setSelectedToken(e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            >
+                                <option value="">Select a token</option>
+                                {supportedTokens.filter(token => ['USDC'].includes(token.symbol)).map(token => (
+                                    <option key={token.symbol} value={token.symbol}>
+                                        {token.symbol} - {token.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Amount
+                            </label>
+                            <input
+                                type="number"
+                                value={amount}
+                                onChange={(e) => setAmount(e.target.value)}
+                                placeholder="0.0"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            />
+                        </div>
+                        <button
+                            type="submit"
+                            className="w-full bg-primary-600 text-white py-2 px-4 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        >
+                            Repay Debt
+                        </button>
+                    </form>
+                </div>
+            )}
+
+            {activeTab === 'cross-chain' && (
+                <div className="space-y-6">
+                    {/* Cross-Chain Overview */}
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-lg font-semibold text-gray-900">Cross-Chain Lending</h2>
+                            <div className="flex items-center space-x-2">
+                                <GlobeAltIcon className="h-5 w-5 text-primary-600" />
+                                <span className="text-sm text-gray-600">Powered by 1inch Fusion+</span>
                             </div>
                         </div>
-                        <div className="card-body">
-                            <form onSubmit={handleSubmit} className="space-y-4">
-                                {/* Token Selection */}
+                        <p className="text-sm text-gray-600 mb-4">
+                            Bridge collateral across chains and borrow assets on any supported network using Etherlink routing.
+                        </p>
+
+                        {/* Protocol Stats */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                            <div className="bg-gray-50 rounded-lg p-4">
+                                <div className="text-2xl font-bold text-gray-900">
+                                    {primeStats?.totalCrossChainTVL ? formatUSD(BigInt(primeStats.totalCrossChainTVL)) : '$0'}
+                                </div>
+                                <div className="text-sm text-gray-600">Cross-Chain TVL</div>
+                            </div>
+                            <div className="bg-gray-50 rounded-lg p-4">
+                                <div className="text-2xl font-bold text-gray-900">
+                                    {crossChainLoans?.length || 0}
+                                </div>
+                                <div className="text-sm text-gray-600">Active Loans</div>
+                            </div>
+                            <div className="bg-gray-50 rounded-lg p-4">
+                                <div className="text-2xl font-bold text-gray-900">
+                                    {supportedChains?.length || 0}
+                                </div>
+                                <div className="text-sm text-gray-600">Supported Chains</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Cross-Chain Loan Form */}
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Initiate Cross-Chain Loan</h3>
+                        <form onSubmit={handleCrossChainSubmit} className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="label">
-                                        {activeTab === 'deposit' ? 'Collateral Token' :
-                                            activeTab === 'borrow' ? 'Borrow Token' : 'Repay Token'}
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Source Chain
                                     </label>
                                     <select
-                                        value={selectedToken}
-                                        onChange={(e) => setSelectedToken(e.target.value)}
-                                        className="input"
-                                        required
+                                        value={selectedSourceChain}
+                                        onChange={(e) => setSelectedSourceChain(Number(e.target.value))}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                     >
-                                        <option value="">Select a token</option>
-                                        {supportedTokens.map((token) => (
-                                            <option key={token.address} value={token.address}>
-                                                {token.symbol} - {token.name}
+                                        {supportedChains?.map((chain: any) => (
+                                            <option key={chain.id} value={chain.id}>
+                                                {chain.icon} {chain.name}
                                             </option>
                                         ))}
                                     </select>
                                 </div>
-
-                                {/* Amount Input */}
                                 <div>
-                                    <label className="label">
-                                        Amount
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Destination Chain
+                                    </label>
+                                    <select
+                                        value={selectedDestChain}
+                                        onChange={(e) => setSelectedDestChain(Number(e.target.value))}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                    >
+                                        {supportedChains?.map((chain: any) => (
+                                            <option key={chain.id} value={chain.id}>
+                                                {chain.icon} {chain.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Collateral Token
+                                    </label>
+                                    <select
+                                        value={selectedCollateral}
+                                        onChange={(e) => setSelectedCollateral(e.target.value)}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                    >
+                                        <option value="stETH">stETH - Liquid staked Ether</option>
+                                        <option value="rETH">rETH - Rocket Pool ETH</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Borrow Token
+                                    </label>
+                                    <select
+                                        value={selectedBorrow}
+                                        onChange={(e) => setSelectedBorrow(e.target.value)}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                    >
+                                        <option value="USDC">USDC - USD Coin</option>
+                                        <option value="USDT">USDT - Tether</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Collateral Amount
                                     </label>
                                     <input
                                         type="number"
-                                        value={amount}
-                                        onChange={(e) => setAmount(e.target.value)}
-                                        placeholder="0.00"
-                                        className="input"
-                                        required
-                                        min="0"
-                                        step="0.000001"
+                                        value={collateralAmount}
+                                        onChange={(e) => setCollateralAmount(e.target.value)}
+                                        placeholder="0.0"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                     />
                                 </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Borrow Amount
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={borrowAmount}
+                                        onChange={(e) => setBorrowAmount(e.target.value)}
+                                        placeholder="0.0"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                    />
+                                </div>
+                            </div>
 
-                                {/* Transaction Details */}
-                                {amount && selectedToken && (
-                                    <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-gray-600">Token:</span>
-                                            <span className="font-medium">
-                                                {supportedTokens.find(t => t.address === selectedToken)?.symbol}
-                                            </span>
-                                        </div>
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-gray-600">Amount:</span>
-                                            <span className="font-medium">{amount}</span>
-                                        </div>
-                                        {activeTab === 'deposit' && (
-                                            <div className="flex justify-between text-sm">
-                                                <span className="text-gray-600">LTV:</span>
-                                                <span className="font-medium">80%</span>
+                            <button
+                                type="submit"
+                                className="w-full bg-primary-600 text-white py-2 px-4 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            >
+                                <GlobeAltIcon className="h-4 w-4 inline mr-2" />
+                                Initiate Cross-Chain Loan
+                            </button>
+                        </form>
+                    </div>
+
+                    {/* Active Cross-Chain Loans */}
+                    {crossChainLoans && crossChainLoans.length > 0 && (
+                        <div className="bg-white rounded-lg shadow p-6">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Active Cross-Chain Loans</h3>
+                            <div className="space-y-4">
+                                {crossChainLoans.map((loan: any, index: number) => (
+                                    <div key={index} className="border border-gray-200 rounded-lg p-4">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <div className="font-medium text-gray-900">
+                                                    {loan.collateralToken} → {loan.borrowToken}
+                                                </div>
+                                                <div className="text-sm text-gray-600">
+                                                    {loan.sourceChain} → {loan.destinationChain}
+                                                </div>
                                             </div>
-                                        )}
-                                        {activeTab === 'borrow' && (
-                                            <div className="flex justify-between text-sm">
-                                                <span className="text-gray-600">Interest Rate:</span>
-                                                <span className="font-medium">8% APY</span>
+                                            <div className="text-right">
+                                                <div className="text-sm font-medium text-gray-900">
+                                                    {loan.status}
+                                                </div>
+                                                <div className="text-xs text-gray-500">
+                                                    {loan.timestamp}
+                                                </div>
                                             </div>
-                                        )}
+                                        </div>
                                     </div>
-                                )}
-
-                                {/* Submit Button */}
-                                <button
-                                    type="submit"
-                                    className="btn-primary w-full"
-                                    disabled={!amount || !selectedToken}
-                                >
-                                    {activeTab === 'deposit' ? 'Deposit Collateral' :
-                                        activeTab === 'borrow' ? 'Borrow Assets' : 'Repay Debt'}
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Position Overview */}
-                <div className="space-y-6">
-                    {/* Health Factor */}
-                    <div className="card">
-                        <div className="card-header">
-                            <h3 className="text-lg font-semibold text-gray-900">Health Factor</h3>
-                        </div>
-                        <div className="card-body text-center">
-                            <div className={`health-factor ${healthFactorStatus} mx-auto mb-2`}>
-                                <ShieldCheckIcon className="h-4 w-4" />
-                                <span>{healthFactorValue.toFixed(2)}x</span>
-                            </div>
-                            <p className="text-sm text-gray-600">
-                                {healthFactorStatus === 'safe' && 'Your position is healthy'}
-                                {healthFactorStatus === 'warning' && 'Monitor your position closely'}
-                                {healthFactorStatus === 'danger' && 'Add collateral or repay debt'}
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* Position Summary */}
-                    {userPosition && userPosition.isActive && (
-                        <div className="card">
-                            <div className="card-header">
-                                <h3 className="text-lg font-semibold text-gray-900">Position Summary</h3>
-                            </div>
-                            <div className="card-body space-y-3">
-                                <div className="flex justify-between">
-                                    <span className="text-sm text-gray-600">Total Collateral:</span>
-                                    <span className="text-sm font-medium">
-                                        {formatUSD(userPosition.totalCollateralValue)}
-                                    </span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-sm text-gray-600">Total Borrowed:</span>
-                                    <span className="text-sm font-medium">
-                                        {formatUSD(userPosition.totalBorrowValue)}
-                                    </span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-sm text-gray-600">Available to Borrow:</span>
-                                    <span className="text-sm font-medium text-success-600">
-                                        {formatUSD(userPosition.totalCollateralValue * 80n / 100n - userPosition.totalBorrowValue)}
-                                    </span>
-                                </div>
+                                ))}
                             </div>
                         </div>
                     )}
-
-                    {/* Quick Actions */}
-                    <div className="card">
-                        <div className="card-header">
-                            <h3 className="text-lg font-semibold text-gray-900">Quick Actions</h3>
-                        </div>
-                        <div className="card-body space-y-2">
-                            <button className="btn-outline w-full text-sm">
-                                Execute Auto-Repay
-                            </button>
-                            <button className="btn-outline w-full text-sm">
-                                View All Positions
-                            </button>
-                            <button className="btn-outline w-full text-sm">
-                                Emergency Withdraw
-                            </button>
-                        </div>
-                    </div>
                 </div>
-            </div>
-
-            {/* Recent Activity */}
-            <div className="card">
-                <div className="card-header">
-                    <h2 className="text-lg font-semibold text-gray-900">Recent Activity</h2>
-                </div>
-                <div className="card-body">
-                    <div className="text-center text-gray-500 py-8">
-                        <BanknotesIcon className="mx-auto h-12 w-12 text-gray-400" />
-                        <h3 className="mt-2 text-sm font-semibold text-gray-900">No recent activity</h3>
-                        <p className="mt-1 text-sm text-gray-500">
-                            Your lending activity will appear here
-                        </p>
-                    </div>
-                </div>
-            </div>
+            )}
         </div>
     )
 } 

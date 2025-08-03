@@ -39,10 +39,10 @@ const { chains, publicClient, webSocketPublicClient } = configureChains(
     [publicProvider()]
 )
 
-// Set up wagmi config
+// Set up wagmi config with a simple project ID
 const { connectors } = getDefaultWallets({
     appName: 'LendLink',
-    projectId: 'YOUR_WALLETCONNECT_PROJECT_ID', // Replace with your project ID
+    projectId: 'demo-project-id', // Simple demo project ID
     chains,
 })
 

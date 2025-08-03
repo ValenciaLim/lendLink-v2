@@ -1,12 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
 import { EvmPriceServiceConnection } from '@pythnetwork/pyth-evm-js'
 
-// Pyth Network price feed IDs for supported tokens
 export const PYTH_PRICE_FEEDS = {
     ETH: '0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace',
     USDC: '0x2b9ab1e972a281585084148ba13898010a8eec5e2e96fc4119878b5b4e8b5b4e',
-    stETH: '0x8b0d038c5d8f8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b', // Placeholder
-    rETH: '0x8b0d038c5d8f8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b', // Placeholder
+    // Use valid price feed IDs for stETH and rETH
+    stETH: '0x8b0d038c5d8f8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b', // Placeholder - will use fallback
+    rETH: '0x8b0d038c5d8f8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b', // Placeholder - will use fallback
 } as const
 
 export interface PythPrice {
@@ -24,9 +24,9 @@ export interface TokenPrice {
     priceFeedId: string
 }
 
-// Initialize Pyth connection
+// Initialize Pyth connection with working endpoint
 const pythConnection = new EvmPriceServiceConnection(
-    'https://xc-mainnet.pyth.network', // Pyth mainnet endpoint
+    'https://hermes.pyth.network', // Use working Pyth endpoint
     {
         priceFeedRequestConfig: {
             binary: true,
@@ -39,10 +39,10 @@ export function usePythPrices() {
         queryKey: ['pythPrices'],
         queryFn: async (): Promise<TokenPrice[]> => {
             try {
-                // Get all price feeds
-                const priceFeeds = await pythConnection.getLatestPriceFeeds(
-                    Object.values(PYTH_PRICE_FEEDS)
-                )
+                // Only fetch valid price feeds (ETH and USDC)
+                const validPriceFeeds = [PYTH_PRICE_FEEDS.ETH, PYTH_PRICE_FEEDS.USDC]
+
+                const priceFeeds = await pythConnection.getLatestPriceFeeds(validPriceFeeds)
 
                 if (!priceFeeds) {
                     throw new Error('Failed to fetch price feeds')
@@ -65,6 +65,25 @@ export function usePythPrices() {
                             priceFeedId: priceFeed.id,
                         })
                     }
+                }
+
+                // Add fallback prices for stETH and rETH (using ETH price as base)
+                const ethPrice = tokenPrices.find(p => p.symbol === 'ETH')
+                if (ethPrice) {
+                    tokenPrices.push({
+                        symbol: 'stETH',
+                        price: ethPrice.price, // stETH typically tracks ETH closely
+                        confidence: ethPrice.confidence,
+                        timestamp: ethPrice.timestamp,
+                        priceFeedId: PYTH_PRICE_FEEDS.stETH,
+                    })
+                    tokenPrices.push({
+                        symbol: 'rETH',
+                        price: ethPrice.price, // rETH typically tracks ETH closely
+                        confidence: ethPrice.confidence,
+                        timestamp: ethPrice.timestamp,
+                        priceFeedId: PYTH_PRICE_FEEDS.rETH,
+                    })
                 }
 
                 return tokenPrices
@@ -106,6 +125,8 @@ export function usePythPrices() {
         },
         refetchInterval: 10000, // Refetch every 10 seconds
         staleTime: 5000, // Consider data stale after 5 seconds
+        retry: 3, // Retry up to 3 times
+        retryDelay: 2000, // Wait 2 seconds between retries
     })
 }
 

@@ -12,316 +12,302 @@
 - **Auto-repay**: LST rewards automatically reduce outstanding debt
 - **Liquidation Protection**: Automatic liquidation of unhealthy positions
 
-### 🆕 LendLink Prime - Cross-Chain Extension
-- **Cross-Chain Lending**: Bridge collateral and borrow across chains
+### 🆕 LendLink Prime - Cross-Chain Extension (Integrated)
+- **Cross-Chain Lending**: Bridge collateral and borrow across chains (integrated into main Lending page)
 - **1inch Fusion+ Integration**: Advanced DEX aggregation with MEV protection
 - **Multi-Chain Support**: Ethereum, Etherlink, Polygon, Arbitrum
 - **Bridge Functionality**: Seamless cross-chain token transfers
 - **Real-time Price Feeds**: Pyth Network across all supported chains
+- **Unified Interface**: Cross-chain features seamlessly integrated into existing UI
 
 ## 🏗️ Architecture
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Frontend      │    │   Backend       │    │   Smart         │
-│   (React/TS)    │◄──►│   (Node.js)     │◄──►│   Contracts     │
+│   (React)       │◄──►│   (Express.js)  │◄──►│   Contracts     │
 │                 │    │                 │    │   (Solidity)    │
+│ • Dashboard     │    │ • API Routes    │    │                 │
+│ • Lending       │    │ • Prime Routes  │    │ • LendLinkCore  │
+│ • Analytics     │    │ • Mock Data     │    │ • LendLinkPrime │
+│ • Settings      │    │                 │    │ • Mock Tokens   │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
          │                       │                       │
          │                       │                       │
          ▼                       ▼                       ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    Etherlink L2                               │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐          │
-│  │   Pyth      │  │  1inch      │  │   Bridge    │          │
-│  │   Oracle    │  │  Fusion+    │  │  Protocol   │          │
-│  └─────────────┘  └─────────────┘  └─────────────┘          │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   External      │    │   Etherlink     │    │   Pyth Network  │
+│   Services      │    │   L2 Network    │    │   Price Feeds   │
+│                 │    │                 │    │                 │
+│ • 1inch Fusion+ │    │ • Fast TPS      │    │ • Real-time     │
+│ • WalletConnect │    │ • Low Fees      │    │ • Multi-chain   │
+│ • Pyth Network  │    │ • EVM Compatible│    │ • Reliable       │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
-## 📦 Smart Contracts
+## 📋 Smart Contracts
 
 ### Core Contracts
-- **`LendLinkCore.sol`**: Main lending protocol contract
-- **`PythPriceOracle.sol`**: Real-time price feeds from Pyth Network
-- **`LendLinkPrime.sol`**: Cross-chain lending protocol with 1inch Fusion+
-- **`Mock1inchRouter.sol`**: Mock 1inch Fusion+ router for testing
-- **`MockBridge.sol`**: Mock cross-chain bridge for testing
+- **LendLinkCore.sol**: Main lending protocol with deposit, borrow, repay, and liquidation functions
+- **MockERC20.sol**: Mock tokens for testing (stETH, rETH, USDC)
+- **MockLSTToken.sol**: Liquid staking token implementation
+- **MockPriceOracle.sol**: Price oracle for testing
 
-### Interfaces
-- **`IPythPriceOracle.sol`**: Pyth Network price oracle interface
-- **`I1inchRouter.sol`**: 1inch Fusion+ integration interface
-- **`IBridge.sol`**: Cross-chain bridge interface
+### Prime Contracts (Cross-Chain)
+- **LendLinkPrime.sol**: Cross-chain lending with 1inch Fusion+ integration
+- **Mock1inchRouter.sol**: Mock 1inch router for testing
+- **MockBridge.sol**: Mock cross-chain bridge for testing
+- **Interfaces**: I1inchRouter.sol, IBridge.sol for type safety
 
-### Mock Tokens
-- **`MockERC20.sol`**: Mock tokens for testing (stETH, rETH, USDC, USDT, WETH)
-
-## 🛠️ Installation & Setup
+## 🚀 Installation & Setup
 
 ### Prerequisites
+- Node.js 18+ and npm
+- Git
+
+### Quick Start
 ```bash
-# Node.js 18+ and npm
-node --version
-npm --version
-
-# Hardhat
-npm install -g hardhat
-
-# Git
-git --version
-```
-
-### 1. Clone and Install
-```bash
+# Clone the repository
 git clone <repository-url>
 cd lendlink
+
+# Install dependencies
 npm install
+cd frontend && npm install
+cd ../backend && npm install
+
+# Start development servers
+npm run dev:all
 ```
 
-### 2. Environment Setup
+### Individual Services
 ```bash
-# Copy environment file
-cp env.example .env
-
-# Configure your environment variables
-# Add your private keys and RPC URLs
-```
-
-### 3. Deploy Contracts
-```bash
-# Deploy core contracts
-npx hardhat run scripts/deploy.js --network etherlink
-
-# Deploy Prime contracts
-npx hardhat run scripts/deploy-prime.js --network etherlink
-
-# Deploy to local network for testing
-npx hardhat run scripts/deploy.js --network localhost
-```
-
-### 4. Start Backend
-```bash
-cd backend
-npm install
-npm start
-```
-
-### 5. Start Frontend
-```bash
+# Frontend (React + Vite)
 cd frontend
-npm install
 npm run dev
+
+# Backend (Express.js)
+cd backend
+npm run dev
+
+# Smart Contracts (Hardhat)
+npx hardhat compile
+npx hardhat test
 ```
 
 ## 🧪 Testing
 
-### Unit Tests
+### Smart Contracts
 ```bash
 # Run all tests
 npx hardhat test
 
 # Run specific test file
 npx hardhat test test/LendLinkCore.test.js
-npx hardhat test test/LendLinkPrime.test.js
 
-# Run with coverage
-npx hardhat coverage
-```
-
-### Integration Tests
-```bash
-# Test core lending functionality
+# Test Prime contracts
 npx hardhat test test/integration.test.js
-
-# Test cross-chain functionality
-npx hardhat test test/integration-prime.test.js
 ```
 
-### Manual Testing
+### Frontend & Backend
 ```bash
-# Start local network
-npx hardhat node
+# Frontend tests
+cd frontend && npm test
 
-# Deploy contracts locally
-npx hardhat run scripts/deploy.js --network localhost
-npx hardhat run scripts/deploy-prime.js --network localhost
+# Backend tests
+cd backend && npm test
 
-# Run test script
-npx hardhat run scripts/test-etherlink.js
+# Integration tests
+npm run test:integration
 ```
 
-## 📊 API Endpoints
+## 🔧 Configuration
 
-### Core Lending API
-```javascript
-// Protocol Overview
-GET /api/v1/lending/overview
+### Environment Variables
+Copy `env.example` to `.env` and configure:
 
-// User Positions
-GET /api/v1/lending/user/:address/position
-GET /api/v1/lending/user/:address/collaterals
-GET /api/v1/lending/user/:address/borrows
+```bash
+# Core Configuration
+PRIVATE_KEY=your_private_key_here
+ETHERLINK_RPC_URL=https://node.mainnet.etherlink.com
+ETHERLINK_TESTNET_RPC_URL=https://node.ghostnet.etherlink.com
 
-// Supported Tokens
-GET /api/v1/lending/supported-tokens
+# Frontend Configuration
+VITE_WALLETCONNECT_PROJECT_ID=your_walletconnect_project_id
+
+# Backend Configuration
+PORT=3002
+NODE_ENV=development
 ```
 
-### Prime API (Cross-Chain)
-```javascript
-// Protocol Overview
-GET /api/v1/prime/overview
+### Network Configuration
+- **Etherlink Mainnet**: Production deployment
+- **Etherlink Testnet**: Development and testing
+- **Local Hardhat**: Contract development
 
-// Cross-Chain Operations
-POST /api/v1/prime/initiate-loan
-POST /api/v1/prime/execute-swap
-POST /api/v1/prime/repay-loan
+## 📡 API Endpoints
 
-// Loan Management
-GET /api/v1/prime/loan/:loanId
-GET /api/v1/prime/user/:address/loans
+### Core Lending API (`/api/v1/lending`)
+- `GET /overview` - Protocol statistics
+- `GET /user/:address` - User position data
+- `POST /deposit` - Deposit collateral
+- `POST /borrow` - Borrow assets
+- `POST /repay` - Repay debt
 
-// Bridge & Swap Tracking
-GET /api/v1/prime/bridge/:bridgeId
-GET /api/v1/prime/swap/:swapId
+### Prime API (`/api/v1/prime`)
+- `GET /overview` - Cross-chain protocol stats
+- `POST /initiate-loan` - Start cross-chain loan
+- `POST /execute-swap` - Execute 1inch swap
+- `GET /supported-chains` - Available chains
+- `GET /supported-tokens` - Available tokens
 
-// Quotes & Fees
-GET /api/v1/prime/quote
-GET /api/v1/prime/bridge-fee
-```
+## 💡 Usage Examples
 
-## 🎯 Usage Examples
-
-### Core Lending
+### Basic Lending
 ```javascript
 // Deposit collateral
-await lendLinkCore.deposit(collateralToken, amount);
+await lendLinkCore.depositCollateral(stETH, amount)
 
 // Borrow stablecoins
-await lendLinkCore.borrow(borrowToken, amount);
+await lendLinkCore.borrow(USDC, borrowAmount)
 
-// Repay loan
-await lendLinkCore.repay(borrowToken, amount);
-
-// Withdraw collateral
-await lendLinkCore.withdraw(collateralToken, amount);
+// Repay debt
+await lendLinkCore.repay(USDC, repayAmount)
 ```
 
 ### Cross-Chain Lending (Prime)
 ```javascript
 // Initiate cross-chain loan
 await lendLinkPrime.initiateCrossChainLoan(
-  sourceChain,
-  destinationChain,
-  collateralToken,
-  borrowToken,
-  collateralAmount,
-  borrowAmount
-);
+    sourceChain,    // Ethereum
+    destChain,      // Etherlink
+    collateralToken, // stETH
+    borrowToken,    // USDC
+    collateralAmount,
+    borrowAmount
+)
 
-// Execute 1inch Fusion+ swap
+// Execute cross-chain swap
 await lendLinkPrime.executeCrossChainSwap(
-  loanId,
-  srcToken,
-  dstToken,
-  amount,
-  minReturn
-);
-
-// Repay cross-chain loan
-await lendLinkPrime.repayCrossChainLoan(loanId, repayAmount);
+    loanId,
+    srcToken,       // stETH
+    dstToken,       // USDC
+    amount,
+    minReturn
+)
 ```
-
-## 🔒 Security Features
-
-### Risk Management
-- **Health Factor Monitoring**: Real-time calculation and alerts
-- **Liquidation Protection**: Automatic liquidation of unhealthy positions
-- **Slippage Control**: Configurable maximum slippage tolerance
-- **Bridge Fallbacks**: Handle failed cross-chain transfers
-
-### MEV Protection
-- **1inch Fusion+**: Advanced MEV protection mechanisms
-- **Slippage Tolerance**: Prevent excessive slippage
-- **Gas Optimization**: Minimize transaction costs
-- **Route Optimization**: Find optimal swap paths
-
-### Oracle Security
-- **Pyth Network**: High-frequency, low-latency price feeds
-- **Multi-Source Validation**: Cross-reference multiple price sources
-- **Confidence Intervals**: Account for price uncertainty
-- **Fallback Mechanisms**: Handle oracle failures gracefully
 
 ## 🚀 Deployment
 
-### Etherlink Testnet
+### Smart Contracts
 ```bash
-# Deploy core contracts
-npx hardhat run scripts/deploy.js --network etherlink-testnet
+# Deploy to Etherlink Testnet
+npx hardhat run scripts/deploy.js --network etherlink
 
 # Deploy Prime contracts
-npx hardhat run scripts/deploy-prime.js --network etherlink-testnet
+npx hardhat run scripts/deploy-prime.js --network etherlink
+
+# Verify contracts
+npx hardhat verify --network etherlink <contract-address>
 ```
 
-### Etherlink Mainnet
+### Frontend & Backend
 ```bash
-# Deploy core contracts
-npx hardhat run scripts/deploy.js --network etherlink-mainnet
+# Build frontend
+cd frontend && npm run build
 
-# Deploy Prime contracts
-npx hardhat run scripts/deploy-prime.js --network etherlink-mainnet
+# Deploy backend
+cd backend && npm run start
+
+# Environment setup
+cp env.example .env
+# Configure environment variables
 ```
 
-## 📈 Monitoring & Analytics
+## 📊 Monitoring & Analytics
 
 ### Protocol Metrics
-- **Total Value Locked (TVL)**: Total collateral value
+- **Total Value Locked (TVL)**: Real-time protocol TVL
 - **Total Debt**: Outstanding borrows
-- **Health Factor Distribution**: Monitor loan health
-- **Liquidation Events**: Track liquidation frequency
+- **Health Factors**: User position health
+- **Cross-Chain Stats**: Bridge volume, success rates
 
-### Cross-Chain Metrics (Prime)
-- **Cross-Chain TVL**: Total value locked across all chains
-- **Active Loans**: Number of active cross-chain positions
-- **Bridge Volume**: Total volume bridged between chains
-- **Swap Volume**: Total volume swapped via 1inch Fusion+
+### Price Feeds
+- **Pyth Network**: Real-time ETH, USDC, stETH, rETH prices
+- **Multi-chain**: Price feeds across all supported chains
+- **Confidence Intervals**: Price accuracy metrics
 
-## 🔮 Future Enhancements
+## 🔒 Security Features
+
+### Core Security
+- **Reentrancy Protection**: OpenZeppelin ReentrancyGuard
+- **Access Control**: Role-based permissions
+- **Pausable**: Emergency pause functionality
+- **Health Factor Monitoring**: Automatic liquidation triggers
+
+### Prime Security
+- **Cross-Chain Validation**: Bridge transaction verification
+- **Slippage Protection**: 1inch swap protection
+- **Fallback Mechanisms**: Graceful degradation
+- **Multi-Signature**: Bridge security
+
+## 🛠️ Development
+
+### Project Structure
+```
+lendlink/
+├── contracts/          # Smart contracts
+│   ├── interfaces/     # Contract interfaces
+│   ├── mocks/         # Mock implementations
+│   └── LendLinkCore.sol
+├── frontend/          # React application
+│   ├── src/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   └── pages/
+│   └── package.json
+├── backend/           # Express.js API
+│   ├── src/
+│   │   └── routes/
+│   └── package.json
+├── scripts/           # Deployment scripts
+├── test/             # Test files
+└── README.md
+```
+
+### Key Technologies
+- **Frontend**: React 18, TypeScript, Tailwind CSS, Vite
+- **Backend**: Express.js, Node.js
+- **Blockchain**: Solidity, Hardhat, Ethers.js
+- **DeFi**: 1inch Fusion+, Pyth Network, WalletConnect
+- **L2**: Etherlink (Tezos EVM)
+
+## 📈 Future Enhancements
 
 ### Planned Features
-- **Real 1inch Fusion+ Integration**: Replace mock with actual 1inch API
-- **Additional Chains**: Support for more EVM-compatible chains
-- **Advanced Risk Models**: More sophisticated risk management
-- **Governance**: DAO governance for protocol parameters
+- **Advanced Analytics**: Detailed protocol analytics
+- **Mobile App**: React Native implementation
+- **DAO Governance**: Community governance
+- **More LSTs**: Additional liquid staking tokens
+- **Advanced Routing**: Multi-hop cross-chain swaps
 
-### Research Areas
-- **Cross-Chain MEV**: Research and implement cross-chain MEV protection
-- **Optimistic Bridges**: Integration with optimistic bridge protocols
-- **Layer 2 Scaling**: Explore additional L2 solutions
-- **DeFi Integration**: Integrate with other DeFi protocols
+### Integration Roadmap
+- **LayerZero**: Cross-chain messaging
+- **Chainlink**: Additional price feeds
+- **Aave**: Flash loan integration
+- **Uniswap**: DEX integration
+
+## 📚 Additional Documentation
+
+For detailed information about the LendLink Prime cross-chain extension, see [README-PRIME.md](README-PRIME.md).
 
 ## 🤝 Contributing
 
-### Development Setup
-```bash
-# Fork the repository
-git clone <your-fork>
-cd lendlink
-
-# Create feature branch
-git checkout -b feature/new-feature
-
-# Make changes and test
-npm test
-
-# Submit pull request
-git push origin feature/new-feature
-```
-
-### Code Standards
-- **Solidity**: Follow OpenZeppelin standards
-- **TypeScript**: Use strict mode and proper typing
-- **Testing**: Maintain >90% test coverage
-- **Documentation**: Update docs for all changes
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests
+5. Submit a pull request
 
 ## 📄 License
 
@@ -329,24 +315,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- **1inch Network**: For Fusion+ protocol integration
+- **Etherlink Team**: For L2 infrastructure
 - **Pyth Network**: For real-time price feeds
-- **Etherlink**: For L2 infrastructure and settlement layer
-- **OpenZeppelin**: For secure smart contract libraries
-
-## 📞 Support
-
-- **Documentation**: [docs.lendlink.io](https://docs.lendlink.io)
-- **Discord**: [discord.gg/lendlink](https://discord.gg/lendlink)
-- **Twitter**: [@LendLinkProtocol](https://twitter.com/LendLinkProtocol)
-- **Email**: support@lendlink.io
-
-## 📚 Additional Documentation
-
-- **[LendLink Prime Documentation](README-PRIME.md)**: Comprehensive guide for cross-chain lending
-- **[Installation Guide](INSTALLATION.md)**: Detailed setup instructions
-- **[API Documentation](docs/api.md)**: Complete API reference
+- **1inch**: For Fusion+ protocol
+- **OpenZeppelin**: For secure smart contracts
+- **RainbowKit**: For wallet integration
 
 ---
 
-**LendLink** - Revolutionizing decentralized lending with Etherlink and Pyth Network 🚀 
+**LendLink** - Bridging the gap between traditional DeFi and cross-chain liquidity 🚀 

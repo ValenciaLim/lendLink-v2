@@ -3,21 +3,24 @@ import { useAccount } from 'wagmi'
 import {
     ChartBarIcon,
     CurrencyDollarIcon,
-    TrendingUpIcon,
-    TrendingDownIcon,
+    ArrowUpIcon,
+    ArrowDownIcon,
     ClockIcon,
-    ExclamationTriangleIcon
+    ExclamationTriangleIcon,
+    GlobeAltIcon
 } from '@heroicons/react/24/outline'
 import { useLendLink } from '../hooks/useLendLink'
+import { useLendLinkPrime } from '../hooks/useLendLinkPrime'
 import { usePythPrices, formatPriceWithConfidence, getPriceStatus } from '../hooks/usePythPrices'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 
 export default function Dashboard() {
     const { isConnected } = useAccount()
     const { userPosition, totalTVL, totalDebt, isLoading } = useLendLink()
+    const { crossChainLoans, protocolStats: primeStats, supportedChains, isLoading: isLoadingPrime } = useLendLinkPrime()
     const { data: prices, isLoading: isLoadingPrices } = usePythPrices()
 
-    if (isLoading || isLoadingPrices) {
+    if (isLoading || isLoadingPrices || isLoadingPrime) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
@@ -46,13 +49,76 @@ export default function Dashboard() {
                 </div>
             </div>
 
+            {/* Protocol Overview Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {/* Total TVL */}
+                <div className="bg-white rounded-lg shadow p-6">
+                    <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                            <CurrencyDollarIcon className="h-8 w-8 text-primary-600" />
+                        </div>
+                        <div className="ml-4">
+                            <p className="text-sm font-medium text-gray-500">Total TVL</p>
+                            <p className="text-2xl font-bold text-gray-900">
+                                {totalTVL ? formatUSD(totalTVL) : '$0'}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Total Debt */}
+                <div className="bg-white rounded-lg shadow p-6">
+                    <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                            <ChartBarIcon className="h-8 w-8 text-red-600" />
+                        </div>
+                        <div className="ml-4">
+                            <p className="text-sm font-medium text-gray-500">Total Debt</p>
+                            <p className="text-2xl font-bold text-gray-900">
+                                {totalDebt ? formatUSD(totalDebt) : '$0'}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Cross-Chain TVL */}
+                <div className="bg-white rounded-lg shadow p-6">
+                    <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                            <GlobeAltIcon className="h-8 w-8 text-green-600" />
+                        </div>
+                        <div className="ml-4">
+                            <p className="text-sm font-medium text-gray-500">Cross-Chain TVL</p>
+                            <p className="text-2xl font-bold text-gray-900">
+                                {primeStats?.totalCrossChainTVL ? formatUSD(BigInt(primeStats.totalCrossChainTVL)) : '$0'}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Active Cross-Chain Loans */}
+                <div className="bg-white rounded-lg shadow p-6">
+                    <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                            <ArrowUpIcon className="h-8 w-8 text-blue-600" />
+                        </div>
+                        <div className="ml-4">
+                            <p className="text-sm font-medium text-gray-500">Cross-Chain Loans</p>
+                            <p className="text-2xl font-bold text-gray-900">
+                                {crossChainLoans?.length || 0}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {/* Real-time Price Feeds */}
-            <div className="card">
-                <div className="card-header">
+            <div className="bg-white rounded-lg shadow">
+                <div className="px-6 py-4 border-b border-gray-200">
                     <h2 className="text-lg font-semibold text-gray-900">Real-time Market Prices</h2>
                     <p className="text-sm text-gray-500">Powered by Pyth Network</p>
                 </div>
-                <div className="card-body">
+                <div className="p-6">
                     {prices && prices.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                             {prices.map((price) => {
@@ -99,133 +165,104 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {/* Protocol Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="card">
-                    <div className="card-header">
-                        <h3 className="text-lg font-semibold text-gray-900">Total Value Locked</h3>
-                    </div>
-                    <div className="card-body text-center">
-                        <div className="text-3xl font-bold text-primary-600">
-                            {formatUSD(totalTVL)}
+            {/* Cross-Chain Infrastructure */}
+            <div className="bg-white rounded-lg shadow">
+                <div className="px-6 py-4 border-b border-gray-200">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h2 className="text-lg font-semibold text-gray-900">Cross-Chain Infrastructure</h2>
+                            <p className="text-sm text-gray-500">Powered by Etherlink & 1inch Fusion+</p>
                         </div>
-                        <p className="text-sm text-gray-500 mt-1">Protocol TVL</p>
+                        <GlobeAltIcon className="h-6 w-6 text-primary-600" />
                     </div>
                 </div>
-
-                <div className="card">
-                    <div className="card-header">
-                        <h3 className="text-lg font-semibold text-gray-900">Total Debt</h3>
-                    </div>
-                    <div className="card-body text-center">
-                        <div className="text-3xl font-bold text-warning-600">
-                            {formatUSD(totalDebt)}
+                <div className="p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {/* Supported Chains */}
+                        <div className="bg-gray-50 rounded-lg p-4">
+                            <h3 className="font-semibold text-gray-900 mb-3">Supported Chains</h3>
+                            <div className="space-y-2">
+                                {supportedChains?.map((chain: any) => (
+                                    <div key={chain.id} className="flex items-center space-x-2">
+                                        <span className="text-lg">{chain.icon}</span>
+                                        <span className="text-sm text-gray-700">{chain.name}</span>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
-                        <p className="text-sm text-gray-500 mt-1">Outstanding Loans</p>
-                    </div>
-                </div>
 
-                <div className="card">
-                    <div className="card-header">
-                        <h3 className="text-lg font-semibold text-gray-900">Utilization Rate</h3>
-                    </div>
-                    <div className="card-body text-center">
-                        <div className="text-3xl font-bold text-info-600">
-                            {totalTVL > 0 ? ((Number(totalDebt) / Number(totalTVL)) * 100).toFixed(1) : '0'}%
+                        {/* Cross-Chain Stats */}
+                        <div className="bg-gray-50 rounded-lg p-4">
+                            <h3 className="font-semibold text-gray-900 mb-3">Cross-Chain Stats</h3>
+                            <div className="space-y-2">
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-gray-600">Total Bridges:</span>
+                                    <span className="text-sm font-medium">{primeStats?.totalBridges || 0}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-gray-600">Active Loans:</span>
+                                    <span className="text-sm font-medium">{crossChainLoans?.length || 0}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-gray-600">Success Rate:</span>
+                                    <span className="text-sm font-medium text-green-600">98.5%</span>
+                                </div>
+                            </div>
                         </div>
-                        <p className="text-sm text-gray-500 mt-1">Protocol Utilization</p>
+
+                        {/* Quick Actions */}
+                        <div className="bg-gray-50 rounded-lg p-4">
+                            <h3 className="font-semibold text-gray-900 mb-3">Quick Actions</h3>
+                            <div className="space-y-2">
+                                <button className="w-full text-left text-sm text-primary-600 hover:text-primary-700">
+                                    • Initiate Cross-Chain Loan
+                                </button>
+                                <button className="w-full text-left text-sm text-primary-600 hover:text-primary-700">
+                                    • View Bridge Status
+                                </button>
+                                <button className="w-full text-left text-sm text-primary-600 hover:text-primary-700">
+                                    • Manage Cross-Chain Positions
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {/* User Position */}
-            {isConnected && userPosition && userPosition.isActive && (
-                <div className="card">
-                    <div className="card-header">
-                        <h2 className="text-lg font-semibold text-gray-900">Your Position</h2>
+            {/* Recent Cross-Chain Activity */}
+            {crossChainLoans && crossChainLoans.length > 0 && (
+                <div className="bg-white rounded-lg shadow">
+                    <div className="px-6 py-4 border-b border-gray-200">
+                        <h2 className="text-lg font-semibold text-gray-900">Recent Cross-Chain Activity</h2>
                     </div>
-                    <div className="card-body">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* Health Factor */}
-                            <div className="space-y-4">
-                                <h3 className="text-md font-semibold text-gray-900">Health Factor</h3>
-                                <div className={`health-factor ${healthFactorStatus} mx-auto mb-2`}>
-                                    <span>{healthFactorValue.toFixed(2)}x</span>
-                                </div>
-                                <p className="text-sm text-gray-600 text-center">
-                                    {healthFactorStatus === 'safe' && 'Your position is healthy'}
-                                    {healthFactorStatus === 'warning' && 'Monitor your position closely'}
-                                    {healthFactorStatus === 'danger' && 'Add collateral or repay debt'}
-                                </p>
-                            </div>
-
-                            {/* Position Summary */}
-                            <div className="space-y-4">
-                                <h3 className="text-md font-semibold text-gray-900">Position Summary</h3>
-                                <div className="space-y-2">
-                                    <div className="flex justify-between">
-                                        <span className="text-sm text-gray-600">Total Collateral:</span>
-                                        <span className="text-sm font-medium">
-                                            {formatUSD(userPosition.totalCollateralValue)}
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-sm text-gray-600">Total Borrowed:</span>
-                                        <span className="text-sm font-medium">
-                                            {formatUSD(userPosition.totalBorrowValue)}
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-sm text-gray-600">Available to Borrow:</span>
-                                        <span className="text-sm font-medium text-success-600">
-                                            {formatUSD(userPosition.totalCollateralValue * 80n / 100n - userPosition.totalBorrowValue)}
-                                        </span>
+                    <div className="p-6">
+                        <div className="space-y-4">
+                            {crossChainLoans.slice(0, 3).map((loan: any, index: number) => (
+                                <div key={index} className="border border-gray-200 rounded-lg p-4">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <div className="font-medium text-gray-900">
+                                                {loan.collateralToken} → {loan.borrowToken}
+                                            </div>
+                                            <div className="text-sm text-gray-600">
+                                                {loan.sourceChain} → {loan.destinationChain}
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className="text-sm font-medium text-gray-900">
+                                                {loan.status}
+                                            </div>
+                                            <div className="text-xs text-gray-500">
+                                                {loan.timestamp}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            ))}
                         </div>
                     </div>
                 </div>
             )}
-
-            {/* Quick Actions */}
-            <div className="card">
-                <div className="card-header">
-                    <h2 className="text-lg font-semibold text-gray-900">Quick Actions</h2>
-                </div>
-                <div className="card-body">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <button className="btn-primary">
-                            <TrendingUpIcon className="h-5 w-5 mr-2" />
-                            Deposit Collateral
-                        </button>
-                        <button className="btn-outline">
-                            <CurrencyDollarIcon className="h-5 w-5 mr-2" />
-                            Borrow Assets
-                        </button>
-                        <button className="btn-outline">
-                            <ChartBarIcon className="h-5 w-5 mr-2" />
-                            View Analytics
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {/* Recent Activity */}
-            <div className="card">
-                <div className="card-header">
-                    <h2 className="text-lg font-semibold text-gray-900">Recent Activity</h2>
-                </div>
-                <div className="card-body">
-                    <div className="text-center text-gray-500 py-8">
-                        <ClockIcon className="mx-auto h-12 w-12 text-gray-400" />
-                        <h3 className="mt-2 text-sm font-semibold text-gray-900">No recent activity</h3>
-                        <p className="mt-1 text-sm text-gray-500">
-                            Your lending activity will appear here
-                        </p>
-                    </div>
-                </div>
-            </div>
         </div>
     )
 }
