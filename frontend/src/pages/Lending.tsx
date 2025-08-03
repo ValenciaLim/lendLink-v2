@@ -49,7 +49,45 @@ export default function Lending() {
     const [selectedCollateral, setSelectedCollateral] = useState('stETH')
     const [selectedBorrow, setSelectedBorrow] = useState('USDC')
     const [collateralAmount, setCollateralAmount] = useState('')
-    const [borrowAmount, setBorrowAmount] = useState('')
+    // Remove manual borrow amount input - will be calculated automatically
+    // const [borrowAmount, setBorrowAmount] = useState('')
+
+    // Calculate borrow amount based on collateral
+    const calculateBorrowAmount = (collateralAmount: string, collateralToken: string, borrowToken: string) => {
+        if (!collateralAmount || parseFloat(collateralAmount) <= 0) return '0'
+        
+        const collateralValue = parseFloat(collateralAmount)
+        let borrowAmount = 0
+        
+        // LTV ratios (Loan-to-Value)
+        const ltvRatios: { [key: string]: number } = {
+            'stETH': 0.75, // 75% LTV for stETH
+            'rETH': 0.70,  // 70% LTV for rETH
+            'USDC': 0.85,  // 85% LTV for USDC
+            'USDT': 0.85   // 85% LTV for USDT
+        }
+        
+        // Token prices (in USD) - in production, these would come from price feeds
+        const tokenPrices: { [key: string]: number } = {
+            'stETH': 2000, // $2000 per stETH
+            'rETH': 1900,  // $1900 per rETH
+            'USDC': 1,     // $1 per USDC
+            'USDT': 1      // $1 per USDT
+        }
+        
+        const ltv = ltvRatios[collateralToken] || 0.75
+        const collateralPrice = tokenPrices[collateralToken] || 1
+        const borrowPrice = tokenPrices[borrowToken] || 1
+        
+        // Calculate maximum borrow amount
+        const collateralValueUSD = collateralValue * collateralPrice
+        const maxBorrowValueUSD = collateralValueUSD * ltv
+        borrowAmount = maxBorrowValueUSD / borrowPrice
+        
+        return borrowAmount.toFixed(6)
+    }
+    
+    const calculatedBorrowAmount = calculateBorrowAmount(collateralAmount, selectedCollateral, selectedBorrow)
 
     // Swap state
     const [swapQuote, setSwapQuote] = useState<any>(null)
@@ -149,8 +187,13 @@ export default function Lending() {
     const handleCrossChainSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
 
-        if (!collateralAmount || !borrowAmount) {
-            alert('Please enter both collateral and borrow amounts')
+        if (!collateralAmount || parseFloat(collateralAmount) <= 0) {
+            alert('Please enter a valid collateral amount')
+            return
+        }
+        
+        if (parseFloat(calculatedBorrowAmount) <= 0) {
+            alert('Please enter a valid collateral amount to calculate borrow amount')
             return
         }
 
@@ -176,7 +219,7 @@ export default function Lending() {
                     alert(`Cross-chain swap executed! TX: ${result.txHash}`)
                     // Reset form
                     setCollateralAmount('')
-                    setBorrowAmount('')
+                    // setBorrowAmount('') // No longer needed
                 } else {
                     alert('Failed to execute cross-chain swap')
                 }
@@ -660,15 +703,18 @@ export default function Lending() {
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Borrow Amount
+                                        Calculated Borrow Amount
                                     </label>
                                     <input
                                         type="number"
-                                        value={borrowAmount}
-                                        onChange={(e) => setBorrowAmount(e.target.value)}
+                                        value={calculatedBorrowAmount}
+                                        readOnly
                                         placeholder="0.0"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700 cursor-not-allowed"
                                     />
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        Based on {selectedCollateral} collateral and LTV ratio
+                                    </p>
                                 </div>
                             </div>
 

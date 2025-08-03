@@ -1,13 +1,15 @@
 import React from 'react'
 import { useAccount } from 'wagmi'
+import { useQuery } from '@tanstack/react-query'
+import axios from 'axios'
 import {
-    ChartBarIcon,
     CurrencyDollarIcon,
-    ArrowUpIcon,
-    ArrowDownIcon,
-    ClockIcon,
+    BanknotesIcon,
+    ArrowTrendingUpIcon,
     ExclamationTriangleIcon,
-    GlobeAltIcon
+    ShieldCheckIcon,
+    GlobeAltIcon,
+    ArrowPathIcon
 } from '@heroicons/react/24/outline'
 import { useLendLink } from '../hooks/useLendLink'
 import { useLendLinkPrime } from '../hooks/useLendLinkPrime'
@@ -17,12 +19,29 @@ import { ConnectButton } from '@rainbow-me/rainbowkit'
 
 export default function Dashboard() {
     const { isConnected } = useAccount()
-    const { userPosition, totalTVL, totalDebt, protocolStats, isLoading } = useLendLink()
-    const { crossChainLoans, protocolStats: primeStats, supportedChains, isLoading: isLoadingPrime } = useLendLinkPrime()
-    const { getTokenPrice, getSupportedChains, loading: isLoading1inch } = use1inch()
-    const { data: prices, isLoading: isLoadingPrices } = usePythPrices()
+    const { userPosition, totalTVL, totalDebt, protocolStats } = useLendLink()
+    const { crossChainLoans, supportedChains, isLoading: isLoadingPrime } = useLendLinkPrime()
 
-    if (isLoading || isLoadingPrices || isLoadingPrime) {
+    // Get cross-chain stats
+    const { data: crossChainStats, isLoading: isLoadingCrossChainStats } = useQuery({
+        queryKey: ['crossChainStats'],
+        queryFn: async () => {
+            try {
+                const response = await axios.get('http://localhost:3002/api/v1/prime/stats')
+                return response.data.data
+            } catch (error) {
+                console.warn('Failed to fetch cross-chain stats:', error)
+                return {
+                    totalBridges: 0,
+                    activeLoans: 0,
+                    successRate: 98.5
+                }
+            }
+        },
+        refetchInterval: 10000 // Refetch every 10 seconds
+    })
+
+    if (isLoadingPrime || isLoadingCrossChainStats) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
@@ -69,7 +88,7 @@ export default function Dashboard() {
                 <div className="bg-white rounded-lg shadow p-6">
                     <div className="flex items-center">
                         <div className="flex-shrink-0">
-                            <ChartBarIcon className="h-8 w-8 text-red-600" />
+                            <BanknotesIcon className="h-8 w-8 text-red-600" />
                         </div>
                         <div className="ml-4">
                             <p className="text-sm font-medium text-gray-500">Total Debt</p>
@@ -80,31 +99,16 @@ export default function Dashboard() {
                     </div>
                 </div>
 
-                {/* Cross-Chain TVL */}
+                {/* Cross-Chain Bridges */}
                 <div className="bg-white rounded-lg shadow p-6">
                     <div className="flex items-center">
                         <div className="flex-shrink-0">
                             <GlobeAltIcon className="h-8 w-8 text-green-600" />
                         </div>
                         <div className="ml-4">
-                            <p className="text-sm font-medium text-gray-500">Cross-Chain TVL</p>
+                            <p className="text-sm font-medium text-gray-500">Cross-Chain Bridges</p>
                             <p className="text-2xl font-bold text-gray-900">
-                                {primeStats?.totalCrossChainTVL ? formatUSD(BigInt(primeStats.totalCrossChainTVL)) : '$0'}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Repayment Stats */}
-                <div className="bg-white rounded-lg shadow p-6">
-                    <div className="flex items-center">
-                        <div className="flex-shrink-0">
-                            <ArrowDownIcon className="h-8 w-8 text-red-600" />
-                        </div>
-                        <div className="ml-4">
-                            <p className="text-sm font-medium text-gray-500">Total Repayments</p>
-                            <p className="text-2xl font-bold text-gray-900">
-                                {protocolStats?.totalRepayments || 0}
+                                {crossChainStats?.totalBridges || 0}
                             </p>
                         </div>
                     </div>
@@ -114,12 +118,12 @@ export default function Dashboard() {
                 <div className="bg-white rounded-lg shadow p-6">
                     <div className="flex items-center">
                         <div className="flex-shrink-0">
-                            <ArrowUpIcon className="h-8 w-8 text-blue-600" />
+                            <ArrowTrendingUpIcon className="h-8 w-8 text-blue-600" />
                         </div>
                         <div className="ml-4">
-                            <p className="text-sm font-medium text-gray-500">Cross-Chain Loans</p>
+                            <p className="text-sm font-medium text-gray-500">Active Cross-Chain Loans</p>
                             <p className="text-2xl font-bold text-gray-900">
-                                {crossChainLoans?.length || 0}
+                                {crossChainStats?.activeLoans || 0}
                             </p>
                         </div>
                     </div>
@@ -211,15 +215,15 @@ export default function Dashboard() {
                             <div className="space-y-2">
                                 <div className="flex justify-between">
                                     <span className="text-sm text-gray-600">Total Bridges:</span>
-                                    <span className="text-sm font-medium">{primeStats?.totalBridges || 0}</span>
+                                    <span className="text-sm font-medium">{crossChainStats?.totalBridges || 0}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-sm text-gray-600">Active Loans:</span>
-                                    <span className="text-sm font-medium">{crossChainLoans?.length || 0}</span>
+                                    <span className="text-sm font-medium">{crossChainStats?.activeLoans || 0}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-sm text-gray-600">Success Rate:</span>
-                                    <span className="text-sm font-medium text-green-600">98.5%</span>
+                                    <span className="text-sm font-medium text-green-600">{crossChainStats?.successRate || 98.5}%</span>
                                 </div>
                             </div>
                         </div>

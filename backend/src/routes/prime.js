@@ -46,11 +46,27 @@ router.get('/supported-tokens', (req, res) => {
   });
 });
 
-
+/**
+ * @route GET /api/v1/prime/stats
+ * @desc Get cross-chain lending statistics
+ */
+router.get('/stats', (req, res) => {
+  const stats = global.crossChainStats || {
+    totalBridges: 0,
+    activeLoans: 0,
+    successRate: 98.5,
+    lastUpdate: new Date().toISOString()
+  };
+  
+  res.json({
+    success: true,
+    data: stats
+  });
+});
 
 /**
  * @route POST /api/v1/prime/execute-cross-chain-swap
- * @desc Execute cross-chain swap for lending purposes via 1inch Fusion+
+ * @desc Execute cross-chain swap for lending
  */
 router.post('/execute-cross-chain-swap', async (req, res) => {
   try {
@@ -81,6 +97,17 @@ router.post('/execute-cross-chain-swap', async (req, res) => {
     
     const result = await oneInchService.executeCrossChainSwap(swapData);
     
+    // Update cross-chain stats
+    const crossChainStats = {
+      totalBridges: (global.crossChainStats?.totalBridges || 0) + 1,
+      activeLoans: (global.crossChainStats?.activeLoans || 0) + 1,
+      successRate: 98.5, // Mock success rate
+      lastUpdate: new Date().toISOString()
+    };
+    
+    // Store stats globally (in production, this would be in a database)
+    global.crossChainStats = crossChainStats;
+    
     res.json({
       success: true,
       message: 'Cross-chain swap executed successfully for lending',
@@ -96,7 +123,8 @@ router.post('/execute-cross-chain-swap', async (req, res) => {
         slippage: 0.005,
         purpose: 'cross-chain-lending',
         timestamp: new Date().toISOString(),
-        transactionHash: result.txHash
+        transactionHash: result.txHash,
+        stats: crossChainStats
       }
     });
   } catch (error) {
