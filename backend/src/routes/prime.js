@@ -29,6 +29,7 @@ if (!global.crossChainStats) {
   global.crossChainStats = {
     totalBridges: 150,
     activeLoans: 25,
+    totalCrossChainTVL: '5000000', // $5M initial TVL
     successRate: 98.5,
     lastUpdate: new Date().toISOString()
   };
@@ -39,9 +40,26 @@ if (!global.crossChainStats) {
  * @desc Get LendLink Prime protocol overview
  */
 router.get('/overview', (req, res) => {
+  // Get current cross-chain stats
+  const currentStats = global.crossChainStats || {
+    totalBridges: 150,
+    activeLoans: 25,
+    totalCrossChainTVL: '5000000',
+    successRate: 98.5,
+    lastUpdate: new Date().toISOString()
+  };
+
+  // Return dynamic data based on current stats
+  const dynamicData = {
+    ...mockPrimeData,
+    totalCrossChainTVL: currentStats.totalCrossChainTVL,
+    activeLoans: currentStats.activeLoans,
+    totalBridges: currentStats.totalBridges
+  };
+
   res.json({
     success: true,
-    data: mockPrimeData
+    data: dynamicData
   });
 });
 
@@ -111,13 +129,20 @@ router.post('/execute-cross-chain-swap', async (req, res) => {
     const currentStats = global.crossChainStats || {
       totalBridges: 0,
       activeLoans: 0,
+      totalCrossChainTVL: '5000000',
       successRate: 98.5,
       lastUpdate: new Date().toISOString()
     };
     
+    // Calculate new TVL (add collateral value to existing TVL)
+    const collateralValue = parseFloat(amount) * 2000; // Assuming $2000 per stETH
+    const currentTVL = parseFloat(currentStats.totalCrossChainTVL);
+    const newTVL = currentTVL + collateralValue;
+    
     const updatedStats = {
       totalBridges: currentStats.totalBridges + 1,
       activeLoans: currentStats.activeLoans + 1,
+      totalCrossChainTVL: newTVL.toString(),
       successRate: 98.5, // Mock success rate
       lastUpdate: new Date().toISOString()
     };
@@ -160,11 +185,12 @@ router.post('/execute-cross-chain-swap', async (req, res) => {
  */
 router.post('/update-stats', (req, res) => {
   try {
-    const { totalBridges, activeLoans, successRate } = req.body;
+    const { totalBridges, activeLoans, totalCrossChainTVL, successRate } = req.body;
     
     const currentStats = global.crossChainStats || {
       totalBridges: 0,
       activeLoans: 0,
+      totalCrossChainTVL: '5000000',
       successRate: 98.5,
       lastUpdate: new Date().toISOString()
     };
@@ -172,6 +198,7 @@ router.post('/update-stats', (req, res) => {
     const updatedStats = {
       totalBridges: totalBridges !== undefined ? totalBridges : currentStats.totalBridges,
       activeLoans: activeLoans !== undefined ? activeLoans : currentStats.activeLoans,
+      totalCrossChainTVL: totalCrossChainTVL !== undefined ? totalCrossChainTVL : currentStats.totalCrossChainTVL,
       successRate: successRate !== undefined ? successRate : currentStats.successRate,
       lastUpdate: new Date().toISOString()
     };

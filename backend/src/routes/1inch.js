@@ -9,6 +9,7 @@ if (!global.crossChainStats) {
   global.crossChainStats = {
     totalBridges: 150,
     activeLoans: 25,
+    totalCrossChainTVL: '5000000', // $5M initial TVL
     successRate: 98.5,
     lastUpdate: new Date().toISOString()
   };
@@ -323,13 +324,22 @@ router.post('/cross-chain/swap', async (req, res) => {
       const currentStats = global.crossChainStats || {
         totalBridges: 0,
         activeLoans: 0,
+        totalCrossChainTVL: '5000000',
         successRate: 98.5,
         lastUpdate: new Date().toISOString()
       };
       
+      // Calculate new TVL (add collateral value to existing TVL)
+      // Extract collateral amount from swapData if available
+      const collateralAmount = swapData.srcAmount || swapData.amount || '1'; // Default to 1 stETH
+      const collateralValue = parseFloat(collateralAmount) * 2000; // Assuming $2000 per stETH
+      const currentTVL = parseFloat(currentStats.totalCrossChainTVL);
+      const newTVL = currentTVL + collateralValue;
+      
       const updatedStats = {
         totalBridges: currentStats.totalBridges + 1,
         activeLoans: currentStats.activeLoans + 1,
+        totalCrossChainTVL: newTVL.toString(),
         successRate: 98.5, // Mock success rate
         lastUpdate: new Date().toISOString()
       };
