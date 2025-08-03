@@ -35,6 +35,28 @@ const mockUserData = {
   }
 };
 
+// Recent activity tracking
+let recentActivity = [
+  {
+    id: 1,
+    type: 'deposit',
+    user: '0x1234...5678',
+    token: 'stETH',
+    amount: '50',
+    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2h ago
+    status: 'completed'
+  },
+  {
+    id: 2,
+    type: 'borrow',
+    user: '0x1234...5678',
+    token: 'USDC',
+    amount: '25000',
+    timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(), // 5h ago
+    status: 'completed'
+  }
+];
+
 /**
  * @route GET /api/v1/lending/overview
  * @desc Get lending protocol overview
@@ -121,6 +143,22 @@ router.post('/deposit', (req, res) => {
   mockLendingData.totalTVL = (parseFloat(mockLendingData.totalTVL) + depositValue).toString();
   mockLendingData.totalTransactions = parseInt(mockLendingData.totalTransactions) + 1;
   
+  // Add to recent activity
+  recentActivity.unshift({
+    id: recentActivity.length + 1,
+    type: 'deposit',
+    user: userAddress.slice(0, 6) + '...' + userAddress.slice(-4),
+    token,
+    amount,
+    timestamp: new Date().toISOString(),
+    status: 'completed'
+  });
+  
+  // Keep only last 10 activities
+  if (recentActivity.length > 10) {
+    recentActivity = recentActivity.slice(0, 10);
+  }
+  
   res.json({
     success: true,
     message: 'Deposit successful',
@@ -181,6 +219,22 @@ router.post('/borrow', (req, res) => {
   mockLendingData.totalDebt = (parseFloat(mockLendingData.totalDebt) + borrowValue).toString();
   mockLendingData.totalTransactions = parseInt(mockLendingData.totalTransactions) + 1;
   
+  // Add to recent activity
+  recentActivity.unshift({
+    id: recentActivity.length + 1,
+    type: 'borrow',
+    user: userAddress.slice(0, 6) + '...' + userAddress.slice(-4),
+    token,
+    amount,
+    timestamp: new Date().toISOString(),
+    status: 'completed'
+  });
+  
+  // Keep only last 10 activities
+  if (recentActivity.length > 10) {
+    recentActivity = recentActivity.slice(0, 10);
+  }
+  
   res.json({
     success: true,
     message: 'Borrow successful',
@@ -237,6 +291,22 @@ router.post('/repay', (req, res) => {
   mockLendingData.totalDebt = Math.max(0, parseFloat(mockLendingData.totalDebt) - repayValue).toString();
   mockLendingData.totalTransactions = parseInt(mockLendingData.totalTransactions) + 1;
   
+  // Add to recent activity
+  recentActivity.unshift({
+    id: recentActivity.length + 1,
+    type: 'repay',
+    user: userAddress.slice(0, 6) + '...' + userAddress.slice(-4),
+    token,
+    amount,
+    timestamp: new Date().toISOString(),
+    status: 'completed'
+  });
+  
+  // Keep only last 10 activities
+  if (recentActivity.length > 10) {
+    recentActivity = recentActivity.slice(0, 10);
+  }
+  
   res.json({
     success: true,
     message: 'Repayment successful',
@@ -246,6 +316,17 @@ router.post('/repay', (req, res) => {
       amount,
       timestamp: new Date().toISOString()
     }
+  });
+});
+
+/**
+ * @route GET /api/v1/lending/recent-activity
+ * @desc Get recent activity
+ */
+router.get('/recent-activity', (req, res) => {
+  res.json({
+    success: true,
+    data: recentActivity
   });
 });
 

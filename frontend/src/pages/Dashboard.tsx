@@ -17,7 +17,7 @@ import { ConnectButton } from '@rainbow-me/rainbowkit'
 
 export default function Dashboard() {
     const { isConnected } = useAccount()
-    const { userPosition, totalTVL, totalDebt, isLoading } = useLendLink()
+    const { userPosition, totalTVL, totalDebt, protocolStats, isLoading } = useLendLink()
     const { crossChainLoans, protocolStats: primeStats, supportedChains, isLoading: isLoadingPrime } = useLendLinkPrime()
     const { getTokenPrice, getSupportedChains, loading: isLoading1inch } = use1inch()
     const { data: prices, isLoading: isLoadingPrices } = usePythPrices()
@@ -90,6 +90,21 @@ export default function Dashboard() {
                             <p className="text-sm font-medium text-gray-500">Cross-Chain TVL</p>
                             <p className="text-2xl font-bold text-gray-900">
                                 {primeStats?.totalCrossChainTVL ? formatUSD(BigInt(primeStats.totalCrossChainTVL)) : '$0'}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Repayment Stats */}
+                <div className="bg-white rounded-lg shadow p-6">
+                    <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                            <ArrowDownIcon className="h-8 w-8 text-red-600" />
+                        </div>
+                        <div className="ml-4">
+                            <p className="text-sm font-medium text-gray-500">Total Repayments</p>
+                            <p className="text-2xl font-bold text-gray-900">
+                                {protocolStats?.totalRepayments || 0}
                             </p>
                         </div>
                     </div>

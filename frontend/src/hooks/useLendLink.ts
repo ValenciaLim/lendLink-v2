@@ -54,6 +54,7 @@ export interface ProtocolStats {
     totalDebt: string
     totalUsers: number
     totalTransactions: number
+    totalRepayments: number
 }
 
 // Mock data for development
@@ -91,7 +92,8 @@ const mockProtocolStats: ProtocolStats = {
     totalTVL: '1000000',
     totalDebt: '500000',
     totalUsers: 150,
-    totalTransactions: 1250
+    totalTransactions: 1250,
+    totalRepayments: 450
 }
 
 export function useLendLink() {
