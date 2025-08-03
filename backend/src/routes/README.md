@@ -20,12 +20,7 @@ This document outlines the route structure and purpose of each endpoint in the L
   - `GET /debt` - Debt history
   - `GET /users` - User statistics
 
-### `/api/v1/users` - User Management
-- **Purpose**: User profile and preference management
-- **Key Endpoints**:
-  - `GET /:address` - Get user profile
-  - `POST /:address` - Update user profile
-  - `GET /:address/positions` - Get user positions
+
 
 ### `/api/v1/prime` - Cross-Chain Lending (LendLink Prime)
 - **Purpose**: Cross-chain lending functionality with 1inch integration
@@ -70,8 +65,7 @@ This document outlines the route structure and purpose of each endpoint in the L
 1. **For Lending Operations**: Use `/prime/*` routes
 2. **For General Swaps**: Use `/1inch/*` routes
 3. **For Analytics**: Use `/analytics/*` routes
-4. **For User Management**: Use `/users/*` routes
-5. **For Core Lending**: Use `/lending/*` routes
+4. **For Core Lending**: Use `/lending/*` routes
 
 ## API Versioning
 
