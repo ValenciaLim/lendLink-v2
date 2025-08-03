@@ -3,7 +3,6 @@ import { useAccount } from 'wagmi'
 import {
     ChartBarIcon,
     ArrowTrendingUpIcon,
-    UsersIcon,
     CurrencyDollarIcon
 } from '@heroicons/react/24/outline'
 import { useLendLink, formatUSD } from '../hooks/useLendLink'
@@ -44,8 +43,8 @@ export default function Analytics() {
                 </div>
             </div>
 
-            {/* Overview Stats */}
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                         {/* Overview Stats */}
+             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 <div className="bg-white overflow-hidden shadow rounded-lg">
                     <div className="p-5">
                         <div className="flex items-center">
@@ -94,21 +93,7 @@ export default function Analytics() {
                     </div>
                 </div>
 
-                <div className="bg-white overflow-hidden shadow rounded-lg">
-                    <div className="p-5">
-                        <div className="flex items-center">
-                            <div className="flex-shrink-0">
-                                <UsersIcon className="h-6 w-6 text-indigo-600" />
-                            </div>
-                            <div className="ml-4">
-                                <p className="text-2xl font-semibold text-gray-900">
-                                    {protocolStats?.totalUsers || 0}
-                                </p>
-                                <p className="text-sm text-gray-500">Active Users</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                
             </div>
 
             {/* Charts Section */}
@@ -183,25 +168,7 @@ export default function Analytics() {
                                         </div>
                                     </div>
                                 </li>
-                                <li>
-                                    <div className="relative">
-                                        <div className="relative flex space-x-3">
-                                            <div>
-                                                <span className="h-8 w-8 rounded-full bg-purple-500 flex items-center justify-center ring-8 ring-white">
-                                                    <UsersIcon className="h-4 w-4 text-white" />
-                                                </span>
-                                            </div>
-                                            <div className="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
-                                                <div>
-                                                    <p className="text-sm text-gray-500">New user <span className="font-medium text-gray-900">0x1234...5678</span> joined</p>
-                                                </div>
-                                                <div className="text-right text-sm whitespace-nowrap text-gray-500">
-                                                    <time>1d ago</time>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </li>
+                                
                             </ul>
                         </div>
                     </div>
