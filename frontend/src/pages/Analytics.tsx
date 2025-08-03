@@ -98,13 +98,13 @@ export default function Analytics() {
                     <div className="p-5">
                         <div className="flex items-center">
                             <div className="flex-shrink-0">
-                                <ChartBarIcon className="h-6 w-6 text-yellow-600" />
+                                <UsersIcon className="h-6 w-6 text-indigo-600" />
                             </div>
                             <div className="ml-4">
                                 <p className="text-2xl font-semibold text-gray-900">
-                                    {protocolStats?.totalTransactions || 0}
+                                    {protocolStats?.totalUsers || 0}
                                 </p>
-                                <p className="text-sm text-gray-500">Total Transactions</p>
+                                <p className="text-sm text-gray-500">Active Users</p>
                             </div>
                         </div>
                     </div>

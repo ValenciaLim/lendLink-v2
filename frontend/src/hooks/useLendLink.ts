@@ -97,11 +97,79 @@ const mockProtocolStats: ProtocolStats = {
 export function useLendLink() {
     const { address, isConnected } = useAccount()
 
-    // For now, use mock data instead of contract reads
-    const isLoading = false
-    const userPosition = mockUserPosition
-    const userCollaterals = mockUserCollaterals
-    const userBorrows = mockUserBorrows
+    // Get user position from API
+    const { data: userPosition, isLoading: isLoadingPosition } = useQuery({
+        queryKey: ['userPosition', address],
+        queryFn: async () => {
+            if (!address) return mockUserPosition
+            try {
+                const response = await axios.get(`${API_BASE_URL}/lending/user/${address}`)
+                const data = response.data.data
+                return {
+                    totalCollateralValue: ethers.parseEther(data.totalCollateralValue),
+                    totalBorrowValue: ethers.parseEther(data.totalBorrowValue),
+                    healthFactor: ethers.parseEther(data.healthFactor),
+                    lastUpdateTime: BigInt(Math.floor(Date.now() / 1000)),
+                    isActive: true
+                } as UserPosition
+            } catch (error) {
+                console.warn('Failed to fetch user position, using mock data:', error)
+                return mockUserPosition
+            }
+        },
+        refetchInterval: 10000, // Refetch every 10 seconds
+        enabled: !!address
+    })
+
+    // Get user collaterals from API
+    const { data: userCollaterals, isLoading: isLoadingCollaterals } = useQuery({
+        queryKey: ['userCollaterals', address],
+        queryFn: async () => {
+            if (!address) return mockUserCollaterals
+            try {
+                const response = await axios.get(`${API_BASE_URL}/lending/user/${address}`)
+                const data = response.data.data
+                return data.collaterals.map((collateral: any) => ({
+                    token: collateral.token,
+                    amount: ethers.parseEther(collateral.amount),
+                    value: ethers.parseEther(collateral.value),
+                    ltv: ethers.parseEther(collateral.ltv),
+                    liquidationThreshold: ethers.parseEther('0.85'),
+                    isActive: true
+                })) as CollateralInfo[]
+            } catch (error) {
+                console.warn('Failed to fetch user collaterals, using mock data:', error)
+                return mockUserCollaterals
+            }
+        },
+        refetchInterval: 10000, // Refetch every 10 seconds
+        enabled: !!address
+    })
+
+    // Get user borrows from API
+    const { data: userBorrows, isLoading: isLoadingBorrows } = useQuery({
+        queryKey: ['userBorrows', address],
+        queryFn: async () => {
+            if (!address) return mockUserBorrows
+            try {
+                const response = await axios.get(`${API_BASE_URL}/lending/user/${address}`)
+                const data = response.data.data
+                return data.borrows.map((borrow: any) => ({
+                    token: borrow.token,
+                    amount: ethers.parseUnits(borrow.amount, 6), // USDC has 6 decimals
+                    value: ethers.parseEther(borrow.value),
+                    interestRate: ethers.parseEther(borrow.interestRate),
+                    lastUpdateTime: BigInt(Math.floor(Date.now() / 1000)),
+                    isActive: true
+                })) as BorrowInfo[]
+            } catch (error) {
+                console.warn('Failed to fetch user borrows, using mock data:', error)
+                return mockUserBorrows
+            }
+        },
+        refetchInterval: 10000, // Refetch every 10 seconds
+        enabled: !!address
+    })
 
     // Get protocol stats from API
     const { data: protocolStats, isLoading: isLoadingStats } = useQuery({
@@ -138,14 +206,14 @@ export function useLendLink() {
     const totalDebt = protocolStats ? ethers.parseEther(protocolStats.totalDebt) : ethers.parseEther('500000')
 
     return {
-        userPosition,
-        userCollaterals,
-        userBorrows,
+        userPosition: userPosition || mockUserPosition,
+        userCollaterals: userCollaterals || mockUserCollaterals,
+        userBorrows: userBorrows || mockUserBorrows,
         totalTVL,
         totalDebt,
         protocolStats,
         supportedTokens,
-        isLoading: isLoading || isLoadingStats || isLoadingTokens
+        isLoading: isLoadingPosition || isLoadingCollaterals || isLoadingBorrows || isLoadingStats || isLoadingTokens
     }
 }
 
