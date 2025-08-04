@@ -1,41 +1,58 @@
-# LendLink - Decentralized Lending Protocol
+# LendLink - Decentralized Lending Protocol on Etherlink
 
-**LendLink** is a comprehensive decentralized lending protocol built on **Etherlink** with real-time price feeds from **Pyth Network**. The protocol enables users to deposit Liquid Staking Tokens (LSTs) as collateral and borrow stablecoins with advanced risk management.
+**LendLink** is a comprehensive decentralized lending protocol built specifically for **Etherlink L2** with real-time price feeds from **Pyth Network**. The protocol leverages Etherlink's EVM-compatible environment to enable users to deposit Liquid Staking Tokens (LSTs) as collateral and borrow stablecoins with advanced risk management.
+
+## 🚀 Etherlink L2 Integration
+
+### **Core Etherlink Technologies Used**
+
+#### **🏗️ Etherlink L2 Infrastructure**
+- **EVM Compatibility**: Full Ethereum compatibility for seamless smart contract deployment
+- **High Throughput**: 10,000+ TPS for fast lending transactions
+- **Low Gas Fees**: Cost-effective DeFi operations on Etherlink
+- **Fast Finality**: Sub-second transaction finality for real-time lending
+- **Native Token Support**: XTZ and ERC-20 token compatibility
+
+#### **🔧 Etherlink Development Tools**
+- **Hardhat Integration**: Etherlink network configuration for smart contract development
+- **Etherlink RPC**: Direct connection to Etherlink nodes for real-time data
+- **Etherlink Explorer**: Transaction tracking and contract verification
+- **Etherlink Testnet**: Development and testing on Ghostnet
+- **Etherlink Mainnet**: Production deployment on Etherlink
+
+#### **💡 Etherlink-Specific Features**
+- **Cross-Chain Bridge**: Etherlink as central settlement layer for cross-chain lending
+- **L2 Optimization**: Gas-efficient lending operations
+- **Real-time Price Feeds**: Pyth Network integration optimized for Etherlink
+- **Wallet Integration**: Etherlink-compatible wallet support
+- **MEV Protection**: Built-in protection against front-running on Etherlink
 
 ## 🚀 Features
 
-### Core Lending Protocol
+### Core Lending Protocol (Etherlink Native)
 - **LST Collateral**: Deposit stETH, rETH as collateral with real-time USD pricing
-- **Stablecoin Borrowing**: Borrow USDC with competitive rates
-- **Real-time Pricing**: Pyth Network integration for accurate valuations
+- **Stablecoin Borrowing**: Borrow USDC with competitive rates on Etherlink
+- **Real-time Pricing**: Pyth Network integration optimized for Etherlink L2
 - **Health Factor Monitoring**: Advanced risk management system
 - **Auto-repay**: LST rewards automatically reduce outstanding debt
 - **Liquidation Protection**: Automatic liquidation of unhealthy positions
 
-### 🆕 LendLink Prime - Cross-Chain Extension (Integrated)
-- **Cross-Chain Lending**: Bridge collateral and borrow across chains (integrated into main Lending page)
+### 🆕 LendLink Prime - Cross-Chain Extension (Etherlink as Hub)
+- **Etherlink as Settlement Layer**: Cross-chain lending with Etherlink as central hub
 - **1inch Fusion+ Integration**: Advanced DEX aggregation with MEV protection
-- **Multi-Chain Support**: Ethereum, Etherlink, Polygon, Arbitrum
-- **Bridge Functionality**: Seamless cross-chain token transfers
+- **Multi-Chain Support**: Ethereum → Etherlink → Polygon → Arbitrum
+- **Bridge Functionality**: Seamless cross-chain token transfers via Etherlink
 - **Real-time Price Feeds**: Pyth Network across all supported chains
 - **Unified Interface**: Cross-chain features seamlessly integrated into existing UI
 
-### 🔗 1inch API Integration
-- **Swap Protocols**: Classic Swap, Fusion Swap, Cross-Chain Swap, Limit Orders
-- **Data APIs**: Real-time price feeds, wallet balances, token metadata
-- **Web3 APIs**: Transaction status, gas prices, blockchain data
-- **Comprehensive Coverage**: All major 1inch APIs integrated
-- **Auto-Interest Management**: LST yield automatically repays loan interest
-- **Cross-Chain Swaps**: Seamless token bridging with 1inch Fusion+
-
-### 📊 Pyth Network Integration
+### 📊 Pyth Network Integration (Etherlink Optimized)
 - **Real-time Price Feeds**: Live USD pricing for ETH, stETH, rETH
 - **High Accuracy**: Sub-second price updates with confidence intervals
 - **Multi-chain Support**: Price feeds available across all supported chains
 - **Fallback System**: Robust error handling with mock data fallbacks
 - **Status Monitoring**: Live/stale/error indicators for price quality
 
-## 🏗️ Architecture
+## 🏗️ Etherlink Architecture
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
@@ -60,70 +77,48 @@
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
-## 📋 Smart Contracts
+## 📋 Smart Contracts (Etherlink Deployed)
 
 ### Core Contracts
-- **LendLinkCore.sol**: Main lending protocol with deposit, borrow, repay, and liquidation functions
+- **LendLinkCore.sol**: Main lending protocol deployed on Etherlink L2
 - **MockERC20.sol**: Mock tokens for testing (stETH, rETH, USDC)
 - **MockLSTToken.sol**: Liquid staking token implementation
 - **MockPriceOracle.sol**: Price oracle for testing
 
-### Prime Contracts (Cross-Chain)
-- **LendLinkPrime.sol**: Cross-chain lending with 1inch Fusion+ integration
+### Prime Contracts (Cross-Chain with Etherlink Hub)
+- **LendLinkPrime.sol**: Cross-chain lending with Etherlink as settlement layer
 - **Mock1inchRouter.sol**: Mock 1inch router for testing
 - **MockBridge.sol**: Mock cross-chain bridge for testing
 - **Interfaces**: I1inchRouter.sol, IBridge.sol for type safety
 
-## 🔧 API Integration
+## 🔧 Etherlink Configuration
 
-### Pyth Network Price Feeds
-The project integrates **real-time price feeds** from Pyth Network:
-
-#### **Supported Price Feeds**
-- **ETH/USD**: `0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace`
-- **stETH/USD**: `0x846ae1bdb6300b817cee5fdee2a6da192775030db5615b94a465f53bd40850b5`
-- **rETH/USD**: `0xa0255134973f4fdf2f8f7808354274a3b1ebc6ee438be898d045e8b56ba1fe13`
-- **USDC**: Stable $1.00 (stablecoin)
-
-#### **Price Feed Features**
-- **Real-time Updates**: Sub-second price updates
-- **Confidence Intervals**: Price accuracy metrics
-- **Status Monitoring**: Live/stale/error indicators
-- **Fallback System**: Mock data when Pyth is unavailable
-- **Multi-chain Support**: Price feeds across all supported chains
-
-### 1inch APIs Implemented
-The project integrates **12 real 1inch APIs** across multiple categories:
-
-#### **Swap APIs (4 APIs)**
-- `getSwapQuote()` - Get swap quotes with best routes
-- `executeSwap()` - Execute swaps with MEV protection
-- `getCrossChainSwapQuote()` - Cross-chain swap quotes
-- `executeCrossChainSwap()` - Execute cross-chain swaps
-
-#### **Data APIs (4 APIs)**
-- `getTokenPrice()` - Real-time token prices
-- `getWalletBalances()` - Wallet token balances
-- `getTokenMetadata()` - Token information
-- `getSupportedTokens()` - Available tokens per chain
-
-#### **Web3 APIs (2 APIs)**
-- `getTransactionStatus()` - Transaction status tracking
-- `getGasPrice()` - Current gas prices
-
-#### **Utility APIs (2 APIs)**
-- `getSupportedChains()` - Available blockchain networks
-- `getTokenList()` - Token lists per chain
-
-### Backend API Endpoints
+### Network Configuration
+```javascript
+// hardhat.config.js
+module.exports = {
+  networks: {
+    etherlink: {
+      url: "https://node.mainnet.etherlink.com",
+      accounts: [process.env.PRIVATE_KEY],
+      chainId: 128123
+    },
+    etherlinkTestnet: {
+      url: "https://node.ghostnet.etherlink.com", 
+      accounts: [process.env.PRIVATE_KEY],
+      chainId: 128123
+    }
+  }
+}
 ```
-/api/v1/lending/*     - Core lending operations
-/api/v1/1inch/*       - 1inch API proxy
-/api/v1/prime/*       - Cross-chain lending
-/api/v1/lst/*         - LST yield management
-/api/v1/interest/*    - Interest management
-/api/v1/scheduler/*   - Auto-repayment scheduling
-/api/v1/analytics/*   - Protocol analytics
+
+### Environment Variables
+```bash
+# Etherlink Configuration
+ETHERLINK_RPC_URL=https://node.mainnet.etherlink.com
+ETHERLINK_TESTNET_RPC_URL=https://node.ghostnet.etherlink.com
+ETHERLINK_CHAIN_ID=128123
+ETHERLINK_EXPLORER=https://explorer.etherlink.com
 ```
 
 ## 🚀 Installation & Setup
@@ -131,6 +126,7 @@ The project integrates **12 real 1inch APIs** across multiple categories:
 ### Prerequisites
 - Node.js 18+ and npm
 - Git
+- Etherlink wallet (Temple, Kukai, or other Tezos wallets)
 
 ### Quick Start
 ```bash
@@ -143,37 +139,38 @@ npm install
 cd frontend && npm install
 cd ../backend && npm install
 
+# Configure Etherlink network
+cp env.example .env
+# Edit .env with your Etherlink configuration
+
 # Start development servers
 npm run dev:all
 ```
 
-### Individual Services
+### Etherlink Deployment
 ```bash
-# Frontend (React + Vite)
-cd frontend
-npm run dev
+# Deploy to Etherlink Testnet
+npx hardhat run scripts/deploy.js --network etherlinkTestnet
 
-# Backend (Express.js)
-cd backend
-npm run dev
+# Deploy to Etherlink Mainnet
+npx hardhat run scripts/deploy.js --network etherlink
 
-# Smart Contracts (Hardhat)
-npx hardhat compile
-npx hardhat test
+# Verify contracts on Etherlink Explorer
+npx hardhat verify --network etherlink <contract-address>
 ```
 
-## 🧪 Testing
+## 🧪 Testing on Etherlink
 
 ### Smart Contracts
 ```bash
 # Run all tests
 npx hardhat test
 
+# Test on Etherlink Testnet
+npx hardhat test --network etherlinkTestnet
+
 # Run specific test file
 npx hardhat test test/LendLinkCore.test.js
-
-# Test Prime contracts
-npx hardhat test test/integration.test.js
 ```
 
 ### Frontend & Backend
@@ -188,73 +185,49 @@ cd backend && npm test
 npm run test:integration
 ```
 
-## 🔧 Configuration
-
-### Environment Variables
-Copy `env.example` to `.env` and configure:
-
-```bash
-# Core Configuration
-PRIVATE_KEY=your_private_key_here
-ETHERLINK_RPC_URL=https://node.mainnet.etherlink.com
-ETHERLINK_TESTNET_RPC_URL=https://node.ghostnet.etherlink.com
-
-# Frontend Configuration
-VITE_WALLETCONNECT_PROJECT_ID=your_walletconnect_project_id
-
-# Backend Configuration
-PORT=3002
-NODE_ENV=development
-```
-
-### Network Configuration
-- **Etherlink Mainnet**: Production deployment
-- **Etherlink Testnet**: Development and testing
-- **Local Hardhat**: Contract development
-
 ## 📡 API Endpoints
 
 ### Core Lending API (`/api/v1/lending`)
-- `GET /overview` - Protocol statistics
+- `GET /overview` - Protocol statistics on Etherlink
 - `GET /user/:address` - User position data
-- `POST /deposit` - Deposit collateral
-- `POST /borrow` - Borrow assets
-- `POST /repay` - Repay debt
+- `POST /deposit` - Deposit collateral on Etherlink
+- `POST /borrow` - Borrow assets on Etherlink
+- `POST /repay` - Repay debt on Etherlink
 
 ### Prime API (`/api/v1/prime`)
-- `GET /overview` - Cross-chain protocol stats
-- `POST /initiate-loan` - Start cross-chain loan
-- `POST /execute-swap` - Execute 1inch swap
-- `GET /supported-chains` - Available chains
+- `GET /overview` - Cross-chain protocol stats with Etherlink as hub
+- `POST /initiate-loan` - Start cross-chain loan via Etherlink
+- `POST /execute-swap` - Execute cross-chain swap via Etherlink
+- `GET /supported-chains` - Available chains (Etherlink as central)
 - `GET /supported-tokens` - Available tokens
 
 ## 💡 Usage Examples
 
-### Basic Lending
+### Basic Lending on Etherlink
 ```javascript
-// Deposit collateral
+// Deposit collateral on Etherlink
 await lendLinkCore.depositCollateral(stETH, amount)
 
-// Borrow stablecoins
+// Borrow stablecoins on Etherlink
 await lendLinkCore.borrow(USDC, borrowAmount)
 
-// Repay debt
+// Repay debt on Etherlink
 await lendLinkCore.repay(USDC, repayAmount)
 ```
 
-### Cross-Chain Lending (Prime)
+### Cross-Chain Lending (Etherlink as Hub)
 ```javascript
-// Initiate cross-chain loan
+// Initiate cross-chain loan via Etherlink
 await lendLinkPrime.initiateCrossChainLoan(
     sourceChain,    // Ethereum
-    destChain,      // Etherlink
+    destChain,      // Etherlink (central hub)
     collateralToken, // stETH
     borrowToken,    // USDC
     collateralAmount,
     borrowAmount
 )
 
-// Execute cross-chain swap
+// Execute cross-chain swap via Etherlink
 await lendLinkPrime.executeCrossChainSwap(
     loanId,
     srcToken,       // stETH
@@ -264,40 +237,13 @@ await lendLinkPrime.executeCrossChainSwap(
 )
 ```
 
-## 🚀 Deployment
-
-### Smart Contracts
-```bash
-# Deploy to Etherlink Testnet
-npx hardhat run scripts/deploy.js --network etherlink
-
-# Deploy Prime contracts
-npx hardhat run scripts/deploy-prime.js --network etherlink
-
-# Verify contracts
-npx hardhat verify --network etherlink <contract-address>
-```
-
-### Frontend & Backend
-```bash
-# Build frontend
-cd frontend && npm run build
-
-# Deploy backend
-cd backend && npm run start
-
-# Environment setup
-cp env.example .env
-# Configure environment variables
-```
-
 ## 📊 Monitoring & Analytics
 
-### Protocol Metrics
-- **Total Value Locked (TVL)**: Real-time protocol TVL
-- **Total Debt**: Outstanding borrows
-- **Health Factors**: User position health
-- **Cross-Chain Stats**: Bridge volume, success rates
+### Protocol Metrics on Etherlink
+- **Total Value Locked (TVL)**: Real-time protocol TVL on Etherlink
+- **Total Debt**: Outstanding borrows on Etherlink
+- **Health Factors**: User position health on Etherlink
+- **Cross-Chain Stats**: Bridge volume via Etherlink
 
 ### Price Feeds
 - **Pyth Network**: Real-time ETH, stETH, rETH USD prices
@@ -307,14 +253,15 @@ cp env.example .env
 
 ## 🔒 Security Features
 
-### Core Security
+### Core Security (Etherlink Optimized)
 - **Reentrancy Protection**: OpenZeppelin ReentrancyGuard
 - **Access Control**: Role-based permissions
 - **Pausable**: Emergency pause functionality
 - **Health Factor Monitoring**: Automatic liquidation triggers
+- **L2 Security**: Etherlink-specific security measures
 
-### Prime Security
-- **Cross-Chain Validation**: Bridge transaction verification
+### Prime Security (Cross-Chain via Etherlink)
+- **Cross-Chain Validation**: Bridge transaction verification via Etherlink
 - **Slippage Protection**: 1inch swap protection
 - **Fallback Mechanisms**: Graceful degradation
 - **Multi-Signature**: Bridge security
@@ -330,7 +277,7 @@ cp env.example .env
 ### Project Structure
 ```
 lendlink/
-├── contracts/          # Smart contracts
+├── contracts/          # Smart contracts (Etherlink deployed)
 │   ├── interfaces/     # Contract interfaces
 │   ├── mocks/         # Mock implementations
 │   └── LendLinkCore.sol
@@ -353,23 +300,24 @@ lendlink/
 - **Frontend**: React 18, TypeScript, Tailwind CSS, Vite
 - **Backend**: Express.js, Node.js
 - **Blockchain**: Solidity, Hardhat, Ethers.js
+- **L2**: Etherlink (Tezos EVM) - Primary focus
 - **DeFi**: 1inch Fusion+, Pyth Network, WalletConnect
-- **L2**: Etherlink (Tezos EVM)
+- **Cross-Chain**: Etherlink as central settlement layer
 
 ## 📈 Future Enhancements
 
 ### Planned Features
-- **Advanced Analytics**: Detailed protocol analytics
+- **Advanced Analytics**: Detailed protocol analytics on Etherlink
 - **Mobile App**: React Native implementation
-- **DAO Governance**: Community governance
+- **DAO Governance**: Community governance on Etherlink
 - **More LSTs**: Additional liquid staking tokens
-- **Advanced Routing**: Multi-hop cross-chain swaps
+- **Advanced Routing**: Multi-hop cross-chain swaps via Etherlink
 
 ### Integration Roadmap
-- **LayerZero**: Cross-chain messaging
+- **LayerZero**: Cross-chain messaging via Etherlink
 - **Chainlink**: Additional price feeds
-- **Aave**: Flash loan integration
-- **Uniswap**: DEX integration
+- **Aave**: Flash loan integration on Etherlink
+- **Uniswap**: DEX integration on Etherlink
 
 ## 📚 Additional Documentation
 
@@ -391,12 +339,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- **Etherlink Team**: For L2 infrastructure
+- **Etherlink Team**: For L2 infrastructure and EVM compatibility
 - **Pyth Network**: For real-time price feeds
-- **1inch**: For Fusion+ protocol
+- **1inch**: For Fusion+ protocol integration
 - **OpenZeppelin**: For secure smart contracts
 - **RainbowKit**: For wallet integration
 
 ---
 
-**LendLink** - Bridging the gap between traditional DeFi and cross-chain liquidity 🚀 
+**LendLink** - The premier DeFi lending protocol built on Etherlink L2 🚀 
