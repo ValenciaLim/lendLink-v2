@@ -319,20 +319,6 @@ lendlink/
 - **Aave**: Flash loan integration on Etherlink
 - **Uniswap**: DEX integration on Etherlink
 
-## 📚 Additional Documentation
-
-For detailed information about the LendLink Prime cross-chain extension, see [README-PRIME.md](README-PRIME.md).
-
-For comprehensive 1inch API integration details, see [README-1INCH-INTEGRATION.md](README-1INCH-INTEGRATION.md).
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests
-5. Submit a pull request
-
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
