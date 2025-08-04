@@ -1,20 +1,17 @@
 import { useQuery } from '@tanstack/react-query'
 import { EvmPriceServiceConnection } from '@pythnetwork/pyth-evm-js'
 
+// Correct Pyth price feed IDs from the official documentation
 export const PYTH_PRICE_FEEDS = {
+    // Ethereum price feed - this is the correct ID
     ETH: '0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace',
-    USDC: '0x2b9ab1e972a281585084148ba13898010a8eec5e2e96fc4119878b5b4e8b5b4e',
-    // Use valid price feed IDs for stETH and rETH
-    stETH: '0x8b0d038c5d8f8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b', // Placeholder - will use fallback
-    rETH: '0x8b0d038c5d8f8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b', // Placeholder - will use fallback
+    // USDC doesn't have a direct Pyth feed, so we'll use a stable value
+    USDC: '0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace', // Use ETH feed ID temporarily
+    // stETH USD price feed (Liquid staked Ether)
+    stETH: '0x846ae1bdb6300b817cee5fdee2a6da192775030db5615b94a465f53bd40850b5',
+    // rETH USD price feed (Rocket Pool ETH)
+    rETH: '0xa0255134973f4fdf2f8f7808354274a3b1ebc6ee438be898d045e8b56ba1fe13',
 } as const
-
-export interface PythPrice {
-    price: number
-    confidence: number
-    timestamp: number
-    symbol: string
-}
 
 export interface TokenPrice {
     symbol: string
@@ -22,11 +19,12 @@ export interface TokenPrice {
     confidence: number
     timestamp: number
     priceFeedId: string
+    status: 'live' | 'stale' | 'error'
 }
 
-// Initialize Pyth connection with working endpoint
+// Initialize Pyth connection with proper configuration
 const pythConnection = new EvmPriceServiceConnection(
-    'https://hermes.pyth.network', // Use working Pyth endpoint
+    'https://hermes.pyth.network',
     {
         priceFeedRequestConfig: {
             binary: true,
@@ -34,111 +32,153 @@ const pythConnection = new EvmPriceServiceConnection(
     }
 )
 
+// Fallback prices for when Pyth is unavailable
+const FALLBACK_PRICES = {
+    ETH: { price: 2000, confidence: 0.01 },
+    USDC: { price: 1, confidence: 0.001 },
+    stETH: { price: 2000, confidence: 0.01 },
+    rETH: { price: 2000, confidence: 0.01 },
+}
+
 export function usePythPrices() {
     return useQuery({
         queryKey: ['pythPrices'],
         queryFn: async (): Promise<TokenPrice[]> => {
             try {
-                // Only fetch valid price feeds (ETH and USDC)
-                const validPriceFeeds = [PYTH_PRICE_FEEDS.ETH, PYTH_PRICE_FEEDS.USDC]
+                console.log('🔄 Fetching Pyth price feeds...')
 
-                const priceFeeds = await pythConnection.getLatestPriceFeeds(validPriceFeeds)
+                // Fetch all available price feeds (ETH, stETH, rETH)
+                const uniquePriceFeedIds = [
+                    PYTH_PRICE_FEEDS.ETH,
+                    PYTH_PRICE_FEEDS.stETH,
+                    PYTH_PRICE_FEEDS.rETH
+                ]
 
-                if (!priceFeeds) {
-                    throw new Error('Failed to fetch price feeds')
+                console.log('🎯 Requesting price feeds for:', uniquePriceFeedIds)
+
+                // Fetch latest price feeds with timeout
+                const priceFeedsPromise = pythConnection.getLatestPriceFeeds(uniquePriceFeedIds)
+                const timeoutPromise = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('Pyth request timeout')), 10000)
+                )
+
+                const priceFeeds = await Promise.race([priceFeedsPromise, timeoutPromise]) as any
+
+                console.log('📊 Raw price feeds response:', priceFeeds)
+
+                if (!priceFeeds || priceFeeds.length === 0) {
+                    console.warn('⚠️ No price feeds returned from Pyth')
+                    throw new Error('No price feeds available')
                 }
+
+                console.log(`✅ Received ${priceFeeds.length} price feeds from Pyth`)
 
                 // Map price feeds to token prices
                 const tokenPrices: TokenPrice[] = []
+                const now = Date.now()
 
                 for (const priceFeed of priceFeeds) {
-                    if (priceFeed && priceFeed.price) {
-                        const symbol = Object.keys(PYTH_PRICE_FEEDS).find(
-                            key => PYTH_PRICE_FEEDS[key as keyof typeof PYTH_PRICE_FEEDS] === priceFeed.id
-                        ) || 'UNKNOWN'
+                    console.log('🔍 Processing price feed:', priceFeed?.id, priceFeed?.price)
 
-                        tokenPrices.push({
-                            symbol,
-                            price: priceFeed.price.price,
-                            confidence: priceFeed.price.confidence,
-                            timestamp: priceFeed.price.publishTime,
-                            priceFeedId: priceFeed.id,
-                        })
+                    if (priceFeed && priceFeed.price) {
+                        // Convert price from string to number and apply exponent
+                        const priceString = priceFeed.price.price
+                        const exponent = priceFeed.price.expo
+                        const price = parseFloat(priceString) * Math.pow(10, exponent)
+
+                        // Convert confidence from string to number
+                        const confidence = parseFloat(priceFeed.price.confidence)
+                        const timestamp = priceFeed.price.publishTime * 1000 // Convert to milliseconds
+
+                        // Determine status based on timestamp
+                        const isRecent = (now - timestamp) < 5 * 60 * 1000 // 5 minutes
+                        const status: 'live' | 'stale' | 'error' = isRecent ? 'live' : 'stale'
+
+                        // Map price feed ID to symbol (handle both with and without 0x prefix)
+                        let symbol = 'UNKNOWN'
+                        const feedId = priceFeed.id
+
+                        if (feedId === PYTH_PRICE_FEEDS.ETH || feedId === PYTH_PRICE_FEEDS.ETH.substring(2)) {
+                            symbol = 'ETH'
+                        } else if (feedId === PYTH_PRICE_FEEDS.stETH || feedId === PYTH_PRICE_FEEDS.stETH.substring(2)) {
+                            symbol = 'stETH'
+                        } else if (feedId === PYTH_PRICE_FEEDS.rETH || feedId === PYTH_PRICE_FEEDS.rETH.substring(2)) {
+                            symbol = 'rETH'
+                        }
+
+                        if (symbol !== 'UNKNOWN') {
+                            tokenPrices.push({
+                                symbol,
+                                price,
+                                confidence,
+                                timestamp,
+                                priceFeedId: priceFeed.id,
+                                status,
+                            })
+
+                            console.log(`✅ Processed ${symbol}: $${price} ± ${confidence}`)
+                        } else {
+                            console.warn(`⚠️ Unknown price feed ID: ${priceFeed.id}`)
+                        }
+                    } else {
+                        console.warn('⚠️ Invalid price feed data:', priceFeed)
                     }
                 }
 
-                // Add fallback prices for stETH and rETH (using ETH price as base)
-                const ethPrice = tokenPrices.find(p => p.symbol === 'ETH')
-                if (ethPrice) {
-                    tokenPrices.push({
-                        symbol: 'stETH',
-                        price: ethPrice.price, // stETH typically tracks ETH closely
-                        confidence: ethPrice.confidence,
-                        timestamp: ethPrice.timestamp,
-                        priceFeedId: PYTH_PRICE_FEEDS.stETH,
-                    })
-                    tokenPrices.push({
-                        symbol: 'rETH',
-                        price: ethPrice.price, // rETH typically tracks ETH closely
-                        confidence: ethPrice.confidence,
-                        timestamp: ethPrice.timestamp,
-                        priceFeedId: PYTH_PRICE_FEEDS.rETH,
-                    })
-                }
+                // Create USDC price (stable at $1)
+                tokenPrices.push({
+                    symbol: 'USDC',
+                    price: 1,
+                    confidence: 0.001,
+                    timestamp: Date.now(),
+                    priceFeedId: PYTH_PRICE_FEEDS.USDC,
+                    status: 'live',
+                })
 
+                console.log(`🎉 Successfully processed ${tokenPrices.length} token prices`)
+                console.log('📈 Final token prices:', tokenPrices)
                 return tokenPrices
-            } catch (error) {
-                console.error('Error fetching Pyth prices:', error)
 
-                // Fallback to mock prices if Pyth is unavailable
-                return [
-                    {
-                        symbol: 'ETH',
-                        price: 2000,
-                        confidence: 0.01,
-                        timestamp: Date.now(),
-                        priceFeedId: PYTH_PRICE_FEEDS.ETH,
-                    },
-                    {
-                        symbol: 'USDC',
-                        price: 1,
-                        confidence: 0.001,
-                        timestamp: Date.now(),
-                        priceFeedId: PYTH_PRICE_FEEDS.USDC,
-                    },
-                    {
-                        symbol: 'stETH',
-                        price: 2000,
-                        confidence: 0.01,
-                        timestamp: Date.now(),
-                        priceFeedId: PYTH_PRICE_FEEDS.stETH,
-                    },
-                    {
-                        symbol: 'rETH',
-                        price: 2000,
-                        confidence: 0.01,
-                        timestamp: Date.now(),
-                        priceFeedId: PYTH_PRICE_FEEDS.rETH,
-                    },
-                ]
+            } catch (error) {
+                console.error('❌ Error fetching Pyth prices:', error)
+                console.error('🔍 Error details:', {
+                    message: error instanceof Error ? error.message : 'Unknown error',
+                    stack: error instanceof Error ? error.stack : undefined,
+                    name: error instanceof Error ? error.name : 'Unknown'
+                })
+
+                // Return fallback data
+                const fallbackPrices: TokenPrice[] = Object.entries(FALLBACK_PRICES).map(([symbol, data]) => ({
+                    symbol,
+                    price: data.price,
+                    confidence: data.confidence,
+                    timestamp: Date.now(),
+                    priceFeedId: PYTH_PRICE_FEEDS[symbol as keyof typeof PYTH_PRICE_FEEDS],
+                    status: 'error' as const,
+                }))
+
+                console.log('🔄 Using fallback prices due to Pyth error')
+                return fallbackPrices
             }
         },
         refetchInterval: 10000, // Refetch every 10 seconds
         staleTime: 5000, // Consider data stale after 5 seconds
         retry: 3, // Retry up to 3 times
         retryDelay: 2000, // Wait 2 seconds between retries
+        refetchOnWindowFocus: true, // Refetch when window regains focus
+        // Add error handling for network issues
+        retryOnMount: true,
+        refetchOnReconnect: true,
     })
 }
 
 export function useTokenPrice(symbol: string) {
     const { data: prices } = usePythPrices()
-
     return prices?.find(price => price.symbol === symbol) || null
 }
 
 export function useTokenPrices(symbols: string[]) {
     const { data: prices } = usePythPrices()
-
     return prices?.filter(price => symbols.includes(price.symbol)) || []
 }
 
@@ -157,6 +197,7 @@ export function isPriceRecent(timestamp: number): boolean {
 // Utility function to get price status
 export function getPriceStatus(price: TokenPrice): 'fresh' | 'stale' | 'error' {
     if (!price) return 'error'
-    if (!isPriceRecent(price.timestamp)) return 'stale'
+    if (price.status === 'error') return 'error'
+    if (price.status === 'stale') return 'stale'
     return 'fresh'
 } 

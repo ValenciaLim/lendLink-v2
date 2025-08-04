@@ -142,19 +142,22 @@ export default function Dashboard() {
                             {prices.map((price) => {
                                 const status = getPriceStatus(price)
                                 const isRecent = status === 'fresh'
+                                const isError = status === 'error'
 
                                 return (
-                                    <div key={price.symbol} className="bg-gray-50 rounded-lg p-4">
+                                    <div key={price.symbol} className={`bg-gray-50 rounded-lg p-4 ${isError ? 'border-2 border-red-200' : ''}`}>
                                         <div className="flex items-center justify-between mb-2">
                                             <h3 className="font-semibold text-gray-900">{price.symbol}</h3>
                                             <div className="flex items-center space-x-1">
-                                                {isRecent ? (
+                                                {isError ? (
+                                                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                                                ) : isRecent ? (
                                                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                                                 ) : (
                                                     <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
                                                 )}
-                                                <span className="text-xs text-gray-500">
-                                                    {isRecent ? 'Live' : 'Stale'}
+                                                <span className={`text-xs ${isError ? 'text-red-500' : 'text-gray-500'}`}>
+                                                    {isError ? 'Error' : isRecent ? 'Live' : 'Stale'}
                                                 </span>
                                             </div>
                                         </div>
@@ -167,6 +170,11 @@ export default function Dashboard() {
                                         <div className="text-xs text-gray-400 mt-1">
                                             Updated: {new Date(price.timestamp).toLocaleTimeString()}
                                         </div>
+                                        {isError && (
+                                            <div className="text-xs text-red-500 mt-1">
+                                                Using fallback data
+                                            </div>
+                                        )}
                                     </div>
                                 )
                             })}
@@ -277,12 +285,6 @@ export default function Dashboard() {
                     </div>
                     <div className="bg-gray-50 rounded-lg p-4">
                         <div className="text-2xl font-bold text-gray-900">
-                            {crossChainLoans?.length || 0}
-                        </div>
-                        <div className="text-sm text-gray-600">Active Loans</div>
-                    </div>
-                    <div className="bg-gray-50 rounded-lg p-4">
-                        <div className="text-2xl font-bold text-gray-900">
                             {supportedChains?.length || 0}
                         </div>
                         <div className="text-sm text-gray-600">Supported Chains</div>
@@ -324,6 +326,7 @@ export default function Dashboard() {
                     </div>
                 </div>
             )}
+
         </div>
     )
 }

@@ -5,7 +5,7 @@
 ## 🚀 Features
 
 ### Core Lending Protocol
-- **LST Collateral**: Deposit stETH, rETH as collateral
+- **LST Collateral**: Deposit stETH, rETH as collateral with real-time USD pricing
 - **Stablecoin Borrowing**: Borrow USDC with competitive rates
 - **Real-time Pricing**: Pyth Network integration for accurate valuations
 - **Health Factor Monitoring**: Advanced risk management system
@@ -27,6 +27,13 @@
 - **Comprehensive Coverage**: All major 1inch APIs integrated
 - **Auto-Interest Management**: LST yield automatically repays loan interest
 - **Cross-Chain Swaps**: Seamless token bridging with 1inch Fusion+
+
+### 📊 Pyth Network Integration
+- **Real-time Price Feeds**: Live USD pricing for ETH, stETH, rETH
+- **High Accuracy**: Sub-second price updates with confidence intervals
+- **Multi-chain Support**: Price feeds available across all supported chains
+- **Fallback System**: Robust error handling with mock data fallbacks
+- **Status Monitoring**: Live/stale/error indicators for price quality
 
 ## 🏗️ Architecture
 
@@ -68,6 +75,22 @@
 - **Interfaces**: I1inchRouter.sol, IBridge.sol for type safety
 
 ## 🔧 API Integration
+
+### Pyth Network Price Feeds
+The project integrates **real-time price feeds** from Pyth Network:
+
+#### **Supported Price Feeds**
+- **ETH/USD**: `0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace`
+- **stETH/USD**: `0x846ae1bdb6300b817cee5fdee2a6da192775030db5615b94a465f53bd40850b5`
+- **rETH/USD**: `0xa0255134973f4fdf2f8f7808354274a3b1ebc6ee438be898d045e8b56ba1fe13`
+- **USDC**: Stable $1.00 (stablecoin)
+
+#### **Price Feed Features**
+- **Real-time Updates**: Sub-second price updates
+- **Confidence Intervals**: Price accuracy metrics
+- **Status Monitoring**: Live/stale/error indicators
+- **Fallback System**: Mock data when Pyth is unavailable
+- **Multi-chain Support**: Price feeds across all supported chains
 
 ### 1inch APIs Implemented
 The project integrates **12 real 1inch APIs** across multiple categories:
@@ -277,9 +300,10 @@ cp env.example .env
 - **Cross-Chain Stats**: Bridge volume, success rates
 
 ### Price Feeds
-- **Pyth Network**: Real-time ETH, USDC, stETH, rETH prices
+- **Pyth Network**: Real-time ETH, stETH, rETH USD prices
 - **Multi-chain**: Price feeds across all supported chains
 - **Confidence Intervals**: Price accuracy metrics
+- **Status Monitoring**: Live/stale/error indicators
 
 ## 🔒 Security Features
 
@@ -294,6 +318,12 @@ cp env.example .env
 - **Slippage Protection**: 1inch swap protection
 - **Fallback Mechanisms**: Graceful degradation
 - **Multi-Signature**: Bridge security
+
+### Price Feed Security
+- **Real-time Validation**: Pyth Network price verification
+- **Confidence Intervals**: Price accuracy monitoring
+- **Fallback System**: Mock data when Pyth unavailable
+- **Status Monitoring**: Price quality indicators
 
 ## 🛠️ Development
 
